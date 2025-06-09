@@ -1,0 +1,17 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ScenarioIdBubble from '../components/common/ScenarioIdBubble';
+import ZoneDemandChart from '../components/common/ZoneDemandChart';
+import NetLoadChart from '../components/common/NetLoadChart';
+import ZoneLMPChart from '../components/common/ZoneLMPChart';
+import SupplyStackChart from '../components/common/SupplyStackChart';
+---
+<Layout title="Dayzer">
+  <div class="space-y-8">
+    <ScenarioIdBubble client:only="react" />
+    <ZoneDemandChart client:load />
+    <NetLoadChart client:load />
+    <ZoneLMPChart client:load />
+    <SupplyStackChart client:load />
+  </div>
+</Layout>
