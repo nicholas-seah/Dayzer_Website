@@ -13,14 +13,37 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 export const GET: APIRoute = async ({ request }) => {
-  // You can get query params from the URL if needed
-  // const url = new URL(request.url);
-  // const scenarioid = Number(url.searchParams.get('scenarioid')) || 12345;
-
   try {
-    const results = await prisma.resultsUnit.findMany({
+    // Get parameters from query
+    const url = new URL(request.url);
+    const requestedScenarioid = url.searchParams.get('scenarioid');
+    
+    let scenarioid: number | null = null;
+    
+    if (requestedScenarioid) {
+      scenarioid = parseInt(requestedScenarioid, 10);
+    } else {
+      // Find the most recent scenarioid
+      const latestScenario = await prisma.info_scenarioid_scenarioname_mapping.findFirst({
+        orderBy: { scenarioid: 'desc' },
+        select: { scenarioid: true },
+      });
+      scenarioid = latestScenario?.scenarioid || null;
+    }
+    
+    if (!scenarioid) {
+      return new Response(
+        JSON.stringify({ error: 'No scenario found' }),
+        {
+          status: 404,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    const results = await prisma.results_units.findMany({
       where: {
-        scenarioid: 12345, // Replace with your logic or use query param
+        scenarioid: scenarioid,
         unitid: 66038,
       },
       orderBy: [{ Date: 'asc' }, { Hour: 'asc' }],

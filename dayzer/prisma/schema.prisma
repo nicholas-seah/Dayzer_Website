@@ -20,16 +20,16 @@ model zone_demand {
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model binding_constraints_report {
-  scenarioid   Int?
+  scenarioid   Int
   itemtype     String?   @db.VarChar(50)
-  Date         DateTime? @db.Timestamp(0)
-  Hour         Int?      @db.SmallInt
-  itemid       Int?
-  constraintid Int?
+  Date         DateTime  @db.Timestamp(0)
+  Hour         Int       @db.SmallInt
+  itemid       Int
+  constraintid Int
   congestion   Float?    @db.Real
 
+  @@id([scenarioid, Date, Hour, itemid, constraintid], map: "binding_constraints_pk")
   @@index([scenarioid, Date, itemid, constraintid], map: "binding_constraints_idx")
-  @@ignore
 }
 
 model block_hourly_report {
@@ -367,17 +367,17 @@ model results_buses {
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model results_constraints {
-  scenarioid   Int?
-  Date         DateTime? @db.Timestamp(0)
-  Hour         Int?      @db.SmallInt
-  constraintid Int?
+  scenarioid   Int
+  Date         DateTime  @db.Timestamp(0)
+  Hour         Int       @db.SmallInt
+  constraintid Int
   flows        Float?    @db.Real
   shadowprice  Float?    @db.Real
   minflowlimit Float?    @db.Real
   maxflowlimit Float?    @db.Real
 
+  @@id([scenarioid, Date, Hour, constraintid], map: "results_constraints_pk")
   @@index([scenarioid, Date, constraintid], map: "results_constraints_idx")
-  @@ignore
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -413,10 +413,10 @@ model results_reserves {
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model results_units {
-  scenarioid     Int?
-  Date           DateTime? @db.Timestamp(0)
-  Hour           Int?      @db.SmallInt
-  unitid         Int?
+  scenarioid     Int
+  Date           DateTime  @db.Timestamp(0)
+  Hour           Int       @db.SmallInt
+  unitid         Int
   lmp            Float?    @db.Real
   energy         Float?    @db.Real
   congestion     Float?    @db.Real
@@ -432,26 +432,26 @@ model results_units {
   bid            Float?    @db.Real
   cost_fuel      Float?    @db.Real
   cost_emissions Float?    @db.Real
-  cost_vom       Float?    @db.Real
+  cost_vom        Float?    @db.Real
   cost_startup   Float?    @db.Real
 
+  @@id([scenarioid, Date, Hour, unitid], map: "results_units_pk")
   @@index([scenarioid, Date, unitid], map: "results_units_idx")
-  @@ignore
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model results_zones {
-  scenarioid Int?
-  Date       DateTime? @db.Timestamp(0)
-  Hour       Int?      @db.SmallInt
-  zoneid     Int?
+  scenarioid Int
+  Date       DateTime  @db.Timestamp(0)
+  Hour       Int       @db.SmallInt
+  zoneid     Int
   lmp        Float?    @db.Real
   energy     Float?    @db.Real
   congestion Float?    @db.Real
   losses     Float?    @db.Real
 
+  @@id([scenarioid, Date, Hour, zoneid], map: "results_zones_pk")
   @@index([scenarioid, Date, zoneid], map: "results_zones_idx")
-  @@ignore
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -910,8 +910,8 @@ model trancon_limits {
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model transmission_constraint_characteristics {
   scenarioid     Int
-  Date           DateTime? @db.Timestamp(0)
-  constraintid   Int?
+  Date           DateTime  @db.Timestamp(0)
+  constraintid   Int
   constraintname String?   @db.VarChar(100)
   constrainttype String?   @db.VarChar(50)
   minsummerlimit Float?    @db.Real
@@ -922,7 +922,7 @@ model transmission_constraint_characteristics {
   from_pfa_zone  String?   @db.VarChar(50)
   to_pfa_zone    String?   @db.VarChar(50)
 
-  @@ignore
+  @@id([scenarioid, Date, constraintid], map: "transmission_constraint_characteristics_pk")
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

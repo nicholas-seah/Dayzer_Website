@@ -1,0 +1,14 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PricingChart from '../components/common/PricingChart.tsx';
+import CongestionChart from '../components/common/CongestionChart.tsx';
+---
+<Layout title="Goleta - Dayzer">
+  <div class="space-y-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Goleta</h1>
+    <div class="grid grid-cols-1 gap-8">
+      <PricingChart client:load />
+      <CongestionChart client:load />
+    </div>
+  </div>
+</Layout> 

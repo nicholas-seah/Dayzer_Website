@@ -1,0 +1,18 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ScenarioIdBubble from '../components/common/ScenarioIdBubble';
+import ZoneDemandChart from '../components/common/ZoneDemandChart';
+import NetLoadChart from '../components/common/NetLoadChart';
+import ZoneLMPChart from '../components/common/ZoneLMPChart';
+import SupplyStackChart from '../components/common/SupplyStackChart';
+---
+<Layout title="CAISO Fundamentals - Dayzer">
+  <div class="space-y-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">CAISO Fundamentals</h1>
+    <ScenarioIdBubble client:only="react" />
+    <ZoneDemandChart client:load />
+    <NetLoadChart client:load />
+    <ZoneLMPChart client:load />
+    <SupplyStackChart client:load />
+  </div>
+</Layout> 
