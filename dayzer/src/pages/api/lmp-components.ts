@@ -41,20 +41,12 @@ export const GET: APIRoute = async ({ request }) => {
       );
     }
 
-    const results = await prisma.results_units.findMany({
-      where: {
-        scenarioid: scenarioid,
-        unitid: 66038,
-      },
-      orderBy: [{ Date: 'asc' }, { Hour: 'asc' }],
-      select: {
-        Date: true,
-        Hour: true,
-        energy: true,
-        congestion: true,
-        losses: true,
-      },
-    });
+    const results = await prisma.$queryRaw`
+      SELECT "Date", "Hour", energy, congestion, losses 
+      FROM results_units 
+      WHERE unitid = 66038 AND scenarioid = ${scenarioid}
+      ORDER BY "Date" ASC, "Hour" ASC
+    ` as any[];
 
     const data = results.map((row: any) => {
       const date = new Date(row.Date);

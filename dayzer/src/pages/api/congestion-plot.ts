@@ -51,7 +51,7 @@ export const GET: APIRoute = async ({ request }) => {
     // Query 1: binding_constraints_report
     console.log('Query 1: binding_constraints_report');
     const bindingConstraints = await prisma.$queryRaw`
-      SELECT Date, Hour, constraintid, congestion 
+      SELECT "Date", "Hour", constraintid, congestion 
       FROM binding_constraints_report 
       WHERE itemid = 66038 AND scenarioid = ${scenarioid}
     ` as any[];
@@ -69,7 +69,7 @@ export const GET: APIRoute = async ({ request }) => {
     // Query 3: results_constraints
     console.log('Query 3: results_constraints');
     const shadowPrices = await prisma.$queryRaw`
-      SELECT Date, Hour, constraintid, shadowprice 
+      SELECT "Date", "Hour", constraintid, shadowprice 
       FROM results_constraints 
       WHERE scenarioid = ${scenarioid}
     ` as any[];
@@ -78,7 +78,7 @@ export const GET: APIRoute = async ({ request }) => {
     // Query 4: results_units
     console.log('Query 4: results_units');
     const resultsUnit = await prisma.$queryRaw`
-      SELECT Date, Hour, congestion 
+      SELECT "Date", "Hour", congestion 
       FROM results_units 
       WHERE unitid = 66038 AND scenarioid = ${scenarioid}
     ` as any[];
@@ -104,27 +104,25 @@ export const GET: APIRoute = async ({ request }) => {
 
     console.log('Processing data...');
 
-    // Create mapping objects for faster lookups
-    const constraintMap = new Map();
-    constraintMapping.forEach((constraint: any) => {
-      constraintMap.set(constraint.constraintid, {
-        constraintname: constraint.constraintname,
-        constrainttype: constraint.constrainttype,
-      });
-    });
+    // Debug: Check sample binding constraints data
+    console.log('Sample binding constraints data:');
+    console.log(bindingConstraints.slice(0, 3));
+    
+    // Debug: Check sample constraint mapping data  
+    console.log('Sample constraint mapping data:');
+    console.log(constraintMapping.slice(0, 3));
+    
+    // Debug: Check sample shadow prices data
+    console.log('Sample shadow prices data:');
+    console.log(shadowPrices.slice(0, 3));
+    
+    // Debug: Check sample results unit data
+    console.log('Sample results unit data:');
+    console.log(resultsUnit.slice(0, 3));
 
-    const shadowPriceMap = new Map();
-    shadowPrices.forEach((sp: any) => {
-      const key = `${sp.Date.toISOString()}-${sp.Hour}-${sp.constraintid}`;
-      shadowPriceMap.set(key, sp.shadowprice);
-    });
-
-    // First merge: Add constraint names to binding constraints
-    const constraintsData = bindingConstraints.map((bc: any) => {
-      const constraintInfo = constraintMap.get(bc.constraintid);
-      const shadowPriceKey = `${bc.Date.toISOString()}-${bc.Hour}-${bc.constraintid}`;
-      const shadowPrice = shadowPriceMap.get(shadowPriceKey) || 0;
-      
+    // Step 1: Merge binding constraints with constraint mapping (like Python merge)
+    const constraintsWithNames = bindingConstraints.map((bc: any) => {
+      const constraintInfo = constraintMapping.find((cm: any) => cm.constraintid === bc.constraintid);
       return {
         Date: bc.Date,
         Hour: bc.Hour,
@@ -132,41 +130,55 @@ export const GET: APIRoute = async ({ request }) => {
         congestion: bc.congestion || 0,
         constraintname: constraintInfo?.constraintname || `Constraint ${bc.constraintid}`,
         constrainttype: constraintInfo?.constrainttype || 'Unknown',
-        shadowprice: shadowPrice,
-        shiftFactor: shadowPrice !== 0 ? (bc.congestion || 0) / shadowPrice : 0,
-        datetime: new Date(bc.Date.getTime() + (bc.Hour * 60 * 60 * 1000)).toISOString(),
       };
     });
 
-    // Group by datetime and constraint name
-    const datetimeMap = new Map();
-    constraintsData.forEach((item: any) => {
-      if (!datetimeMap.has(item.datetime)) {
-        datetimeMap.set(item.datetime, {});
+    // Step 2: Merge with shadow prices (like Python merge)
+    const constraintsWithShadowPrices = constraintsWithNames.map((item: any) => {
+      const shadowPriceRecord = shadowPrices.find((sp: any) => 
+        sp.Date.getTime() === item.Date.getTime() && 
+        sp.Hour === item.Hour && 
+        sp.constraintid === item.constraintid
+      );
+      const shadowprice = shadowPriceRecord?.shadowprice || 0;
+      
+      return {
+        ...item,
+        shadowprice,
+        shiftFactor: shadowprice !== 0 ? item.congestion / shadowprice : 0,
+        datetime: new Date(item.Date.getTime() + (item.Hour * 60 * 60 * 1000)).toISOString(),
+      };
+    });
+
+    // Step 3: Create pivot structure (like Python pivot)
+    // Group by datetime, then create columns for each constraint name
+    const datetimeGroups = new Map();
+    
+    constraintsWithShadowPrices.forEach((item: any) => {
+      if (!datetimeGroups.has(item.datetime)) {
+        datetimeGroups.set(item.datetime, {});
       }
-      datetimeMap.get(item.datetime)[item.constraintname] = {
-        congestion: item.congestion,
-        shiftFactor: item.shiftFactor,
-        shadowprice: item.shadowprice,
-      };
+      // Sum congestion if multiple records for same constraint at same time
+      const existing = datetimeGroups.get(item.datetime)[item.constraintname] || 0;
+      datetimeGroups.get(item.datetime)[item.constraintname] = existing + item.congestion;
     });
 
-    // Get total congestion from results_units
+    // Step 4: Get all unique constraint names (like constraints_list in Python)
+    const allConstraintNames = [...new Set(constraintsWithShadowPrices.map((item: any) => item.constraintname))];
+    console.log('Unique constraint names:', allConstraintNames);
+
+    // Step 5: Merge with results_units for total congestion (like Python merge)
     const totalCongestionMap = new Map();
     resultsUnit.forEach((ru: any) => {
       const datetime = new Date(ru.Date.getTime() + (ru.Hour * 60 * 60 * 1000)).toISOString();
       totalCongestionMap.set(datetime, ru.congestion || 0);
     });
 
-    // Get unique constraint names
-    const constraintNames = [...new Set(constraintsData.map((item: any) => item.constraintname))];
-    console.log('Unique constraint names:', constraintNames);
-
-    // Build final result array
-    const resultData = Array.from(datetimeMap.keys())
+    // Step 6: Build final result array (like res_df in Python)
+    const resultData = Array.from(datetimeGroups.keys())
       .sort()
       .map((datetime: string) => {
-        const constraintData = datetimeMap.get(datetime);
+        const constraintData = datetimeGroups.get(datetime);
         const totalCongestion = totalCongestionMap.get(datetime) || 0;
         
         const row: any = {
@@ -174,34 +186,53 @@ export const GET: APIRoute = async ({ request }) => {
           'Total Congestion': totalCongestion,
         };
 
+        // Add each constraint as a column (like pivot in Python)
         let sumConstraints = 0;
-        (constraintNames as string[]).forEach((constraintName: string) => {
-          const congestionValue = constraintData[constraintName]?.congestion || 0;
+        allConstraintNames.forEach((constraintName: string) => {
+          const congestionValue = constraintData[constraintName] || 0;
           row[constraintName] = congestionValue;
           sumConstraints += congestionValue;
         });
 
-        // Calculate "Other" category
-        row['Other'] = Math.max(0, totalCongestion - sumConstraints);
+        // Calculate "Other" category (like Python: Total - sum(constraints))
+        row['Other'] = totalCongestion - sumConstraints;
 
         return row;
       });
 
     console.log('Final result data points:', resultData.length);
+    console.log('Sample data point:', resultData[0]);
+    
+    // Debug: Check a few more sample data points
+    console.log('More sample data points:');
+    console.log(resultData.slice(0, 3));
+    
+    // Debug: Check constraint sums vs total
+    if (resultData.length > 0) {
+      const samplePoint = resultData[Math.floor(resultData.length / 2)]; // Middle point
+      const constraintSum = allConstraintNames.reduce((sum, name) => sum + (samplePoint[name] || 0), 0);
+      console.log('Debug sample point analysis:');
+      console.log('Total Congestion:', samplePoint['Total Congestion']);
+      console.log('Sum of constraints:', constraintSum);
+      console.log('Other:', samplePoint['Other']);
+      console.log('Math check:', constraintSum + samplePoint['Other'], 'should equal', samplePoint['Total Congestion']);
+    }
 
-    // Add metadata for the chart
+    // Create metadata for enhanced tooltips
+    const constraintDetails = constraintsWithShadowPrices.reduce((acc: any, item: any) => {
+      if (!acc[item.constraintname]) {
+        acc[item.constraintname] = {};
+      }
+      acc[item.constraintname][item.datetime] = {
+        shiftFactor: item.shiftFactor,
+        shadowprice: item.shadowprice,
+      };
+      return acc;
+    }, {});
+
     const metadata = {
-      constraintNames: constraintNames,
-      constraintDetails: constraintsData.reduce((acc: any, item: any) => {
-        if (!acc[item.constraintname]) {
-          acc[item.constraintname] = {};
-        }
-        acc[item.constraintname][item.datetime] = {
-          shiftFactor: item.shiftFactor,
-          shadowprice: item.shadowprice,
-        };
-        return acc;
-      }, {}),
+      constraintNames: allConstraintNames,
+      constraintDetails: constraintDetails,
     };
 
     console.log('=== API Success ===');

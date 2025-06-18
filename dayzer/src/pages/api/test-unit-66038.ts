@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 export const GET: APIRoute = async ({ request }) => {
   try {
-    console.log('=== Testing Congestion Data Availability ===');
+    console.log('=== Testing Unit 66038 Data ===');
     
     // Get latest scenarioid
     const latestScenario = await prisma.info_scenarioid_scenarioname_mapping.findFirst({
@@ -23,51 +23,49 @@ export const GET: APIRoute = async ({ request }) => {
       });
     }
 
-    // Test 1: Check if binding_constraints_report table exists and has any data
-    const allBindingConstraints = await prisma.$queryRaw`
-      SELECT COUNT(*)::int as total_count
+    // Test 1: Check if unit 66038 exists in binding_constraints_report
+    const unit66038InBinding = await prisma.$queryRaw`
+      SELECT COUNT(*)::int as count
       FROM binding_constraints_report 
-      WHERE scenarioid = ${scenarioid}
+      WHERE itemid = 66038 AND scenarioid = ${scenarioid}
     ` as any[];
     
-    // Test 2: Check unique unitids in binding_constraints_report
-    const uniqueUnits = await prisma.$queryRaw`
-      SELECT DISTINCT itemid, COUNT(*)::int as count
-      FROM binding_constraints_report 
-      WHERE scenarioid = ${scenarioid}
-      GROUP BY itemid
-      ORDER BY count DESC
-      LIMIT 10
-    ` as any[];
-    
-    // Test 3: Check if unit 56154 exists in results_units
-    const unit56154InResults = await prisma.$queryRaw`
+    // Test 2: Check if unit 66038 exists in results_units
+    const unit66038InResults = await prisma.$queryRaw`
       SELECT COUNT(*)::int as count
       FROM results_units 
-      WHERE unitid = 56154 AND scenarioid = ${scenarioid}
+      WHERE unitid = 66038 AND scenarioid = ${scenarioid}
     ` as any[];
     
-    // Test 4: Check some data from results_units for any unit
-    const sampleResultsUnits = await prisma.$queryRaw`
-      SELECT DISTINCT unitid, COUNT(*)::int as count
+    // Test 3: Sample some data from binding_constraints_report for unit 66038
+    const sampleBindingData = await prisma.$queryRaw`
+      SELECT "Date", "Hour", constraintid, congestion 
+      FROM binding_constraints_report 
+      WHERE itemid = 66038 AND scenarioid = ${scenarioid}
+      ORDER BY "Date", "Hour"
+      LIMIT 5
+    ` as any[];
+
+    // Test 4: Sample some data from results_units for unit 66038
+    const sampleResultsData = await prisma.$queryRaw`
+      SELECT "Date", "Hour", energy, congestion, losses 
       FROM results_units 
-      WHERE scenarioid = ${scenarioid}
-      GROUP BY unitid
-      ORDER BY count DESC
+      WHERE unitid = 66038 AND scenarioid = ${scenarioid}
+      ORDER BY "Date", "Hour"
       LIMIT 5
     ` as any[];
 
     const result = {
       scenarioid,
-      tests: {
-        totalBindingConstraints: allBindingConstraints[0]?.total_count || 0,
-        uniqueUnitsInBindingConstraints: uniqueUnits,
-        unit56154InResultsUnits: unit56154InResults[0]?.count || 0,
-        sampleUnitsInResultsUnits: sampleResultsUnits,
+      unit66038: {
+        bindingConstraintsCount: unit66038InBinding[0]?.count || 0,
+        resultsUnitsCount: unit66038InResults[0]?.count || 0,
+        sampleBindingData: sampleBindingData,
+        sampleResultsData: sampleResultsData,
       }
     };
 
-    console.log('Test results:', result);
+    console.log('Unit 66038 test results:', result);
 
     return new Response(JSON.stringify(result), {
       status: 200,

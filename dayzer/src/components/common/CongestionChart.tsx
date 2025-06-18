@@ -36,24 +36,44 @@ interface CongestionResponse {
 
 // Generate distinct colors for constraints
 const generateColors = (count: number): string[] => {
-  const colors = [
-    '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-    '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6366F1',
-    '#14B8A6', '#FDE047', '#F87171', '#A78BFA', '#34D399',
+  // Use a carefully selected palette of highly distinct colors
+  const distinctColors = [
+    '#FF6B6B', // Red
+    '#4ECDC4', // Teal
+    '#45B7D1', // Blue
+    '#FFA726', // Orange
+    '#66BB6A', // Green
+    '#AB47BC', // Purple
+    '#FF7043', // Deep Orange
+    '#26A69A', // Cyan
+    '#42A5F5', // Light Blue
+    '#FFCA28', // Amber
+    '#EF5350', // Red variant
+    '#29B6F6', // Light Blue variant
+    '#9CCC65', // Light Green
+    '#EC407A', // Pink
+    '#78909C', // Blue Grey
+    '#FDD835', // Yellow
+    '#8D6E63', // Brown
+    '#D4E157', // Lime
+    '#FF8A65', // Deep Orange variant
+    '#81C784', // Green variant
   ];
   
-  if (count <= colors.length) {
-    return colors.slice(0, count);
+  if (count <= distinctColors.length) {
+    return distinctColors.slice(0, count);
   }
   
-  // Generate additional colors if needed
+  // If we need more colors, generate additional ones with good separation
   const additionalColors = [];
-  for (let i = colors.length; i < count; i++) {
-    const hue = (i * 137.508) % 360; // Golden angle approximation
-    additionalColors.push(`hsl(${hue}, 70%, 50%)`);
+  for (let i = distinctColors.length; i < count; i++) {
+    const hue = (i * 137.508) % 360; // Golden angle for good distribution
+    const saturation = 70 + (i % 3) * 10; // Vary saturation 70-90%
+    const lightness = 45 + (i % 4) * 10; // Vary lightness 45-75%
+    additionalColors.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
   }
   
-  return [...colors, ...additionalColors];
+  return [...distinctColors, ...additionalColors];
 };
 
 export default function CongestionChart() {
@@ -110,27 +130,87 @@ export default function CongestionChart() {
     })}`;
   };
 
-  // Custom tooltip formatter
-  const customTooltipFormatter = (value: any, name: string, props: any) => {
-    if (name === 'Total Congestion') {
-      return [`$${Number(value).toFixed(2)}/MWh`, name];
+  // Custom tooltip content that filters out zero values
+  const CustomTooltipContent = ({ active, payload, label }: any) => {
+    if (!active || !payload || !payload.length) {
+      return null;
     }
-    
-    if (name === 'Other') {
-      return [`$${Number(value).toFixed(2)}/MWh`, name];
+
+    // Filter out zero/near-zero values
+    const nonZeroPayload = payload.filter((entry: any) => {
+      const value = Number(entry.value);
+      return Math.abs(value) >= 0.01;
+    });
+
+    if (nonZeroPayload.length === 0) {
+      return null;
     }
-    
-    // For constraint names, show additional details
-    const datetime = props.payload?.datetime;
-    if (metadata && datetime && metadata.constraintDetails[name] && metadata.constraintDetails[name][datetime]) {
-      const details = metadata.constraintDetails[name][datetime];
-      return [
-        `$${Number(value).toFixed(2)}/MWh`,
-        `${name} (SF: ${details.shiftFactor.toFixed(3)}, SP: $${details.shadowprice.toFixed(2)})`
-      ];
+
+    // Separate Total Congestion from constraints for sorting
+    const totalCongestionEntry = nonZeroPayload.find((entry: any) => entry.name === 'Total Congestion');
+    const constraintEntries = nonZeroPayload.filter((entry: any) => entry.name !== 'Total Congestion');
+
+    // Sort constraints by value (highest to lowest)
+    const sortedConstraints = constraintEntries.sort((a: any, b: any) => {
+      return Number(b.value) - Number(a.value);
+    });
+
+    // Combine sorted constraints with Total Congestion at the end
+    const sortedPayload = [...sortedConstraints];
+    if (totalCongestionEntry) {
+      sortedPayload.push(totalCongestionEntry);
     }
-    
-    return [`$${Number(value).toFixed(2)}/MWh`, name];
+
+    return (
+      <div className="bg-white border border-gray-300 rounded-lg shadow-lg p-3">
+        <p className="font-semibold text-gray-800 mb-2">
+          {formatTooltipLabel(label)}
+        </p>
+        {sortedPayload.map((entry: any, index: number) => {
+          const value = Number(entry.value);
+          const name = entry.name;
+          
+          if (name === 'Total Congestion') {
+            return (
+              <p key={index} style={{ color: '#000000' }} className="text-sm border-t border-gray-200 pt-1 mt-1">
+                <span className="font-medium">{name}:</span> ${value.toFixed(2)}/MWh
+              </p>
+            );
+          }
+          
+          if (name === 'Other') {
+            return (
+              <p key={index} style={{ color: entry.color }} className="text-sm">
+                <span className="font-medium">{name}:</span> ${value.toFixed(2)}/MWh
+              </p>
+            );
+          }
+          
+          // Find the original constraint name
+          const originalName = displayConstraints.find(constraint => 
+            shortenConstraintName(constraint) === name
+          );
+          
+          // Show constraint details if available
+          const datetime = payload[0]?.payload?.datetime;
+          if (metadata && datetime && originalName && metadata.constraintDetails[originalName] && metadata.constraintDetails[originalName][datetime]) {
+            const details = metadata.constraintDetails[originalName][datetime];
+            return (
+              <p key={index} style={{ color: entry.color }} className="text-sm">
+                <span className="font-medium">{name}:</span> ${value.toFixed(2)}/MWh 
+                <span className="text-gray-600"> (SF: {details.shiftFactor.toFixed(3)}, SP: ${details.shadowprice.toFixed(2)})</span>
+              </p>
+            );
+          }
+          
+          return (
+            <p key={index} style={{ color: entry.color }} className="text-sm">
+              <span className="font-medium">{name}:</span> ${value.toFixed(2)}/MWh
+            </p>
+          );
+        })}
+      </div>
+    );
   };
 
   if (loading) {
@@ -157,16 +237,49 @@ export default function CongestionChart() {
     );
   }
 
-  // Get all constraint names including "Other"
-  const allConstraints = [...metadata.constraintNames, 'Other'];
-  const colors = generateColors(allConstraints.length);
+  // Get all constraint names including "Other" - handle empty case
+  const allConstraints = [...(metadata.constraintNames || []), 'Other'];
+  
+  // Use ALL constraints (no filtering to top 10)
+  const displayConstraints = allConstraints;
+  
+  // Function to shorten constraint names
+  const shortenConstraintName = (name: string) => {
+    if (name === 'Other' || name === 'Total Congestion') return name;
+    
+    // Extract meaningful parts of the constraint name
+    const parts = name.split('_');
+    if (parts.length > 2) {
+      // Take first 2 parts and last part, limit total length
+      const shortened = `${parts[0]}_${parts[1]}...${parts[parts.length - 1]}`;
+      return shortened.length > 25 ? shortened.substring(0, 25) + '...' : shortened;
+    }
+    return name.length > 25 ? name.substring(0, 25) + '...' : name;
+  };
+  
+  const colors = generateColors(displayConstraints.length);
+
+  // Show message if no meaningful data
+  if (data.length === 0 || displayConstraints.length <= 1) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-lg">
+        <h2 className="text-xl font-semibold text-gray-800 mb-6">Congestion Analysis</h2>
+        <div className="w-full h-96 flex items-center justify-center">
+          <div className="text-gray-500">No constraint data available for the selected period</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Use original data (no need to recalculate since showing all constraints)
+  const chartData = data;
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
       <h2 className="text-xl font-semibold text-gray-800 mb-6">Congestion Analysis</h2>
-      <div style={{ width: '100%', height: '500px' }}>
+      <div style={{ width: '100%', height: '600px' }}>
         <ResponsiveContainer>
-          <ComposedChart data={data} margin={{ top: 20, right: 30, left: 60, bottom: 25 }}>
+          <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 60, bottom: 25 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" opacity={0.5} />
             <XAxis 
               dataKey="datetime" 
@@ -190,10 +303,10 @@ export default function CongestionChart() {
               tickFormatter={formatYAxisTick}
               interval={0}
               ticks={(() => {
-                if (data.length === 0) return [];
-                const allValues = data.flatMap(d => [
+                if (chartData.length === 0) return [];
+                const allValues = chartData.flatMap(d => [
                   d['Total Congestion'],
-                  ...allConstraints.map(constraint => Number(d[constraint]) || 0)
+                  ...displayConstraints.map(constraint => Number(d[constraint]) || 0)
                 ]);
                 const min = Math.min(...allValues);
                 const max = Math.max(...allValues);
@@ -207,22 +320,20 @@ export default function CongestionChart() {
               })()}
             />
             <Tooltip 
-              labelFormatter={formatTooltipLabel}
-              formatter={customTooltipFormatter}
+              content={CustomTooltipContent}
             />
-            <Legend />
             
             {/* Render areas for each constraint */}
-            {allConstraints.map((constraintName, index) => (
+            {displayConstraints.map((constraintName, index) => (
               <Area
                 key={constraintName}
                 type="monotone"
                 dataKey={constraintName}
                 stackId="1"
-                stroke={colors[index]}
+                stroke="none"
                 fill={colors[index]}
-                fillOpacity={0.6}
-                name={constraintName}
+                fillOpacity={0.85}
+                name={shortenConstraintName(constraintName)}
               />
             ))}
             

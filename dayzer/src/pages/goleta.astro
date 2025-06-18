@@ -2,10 +2,16 @@
 import Layout from '../layouts/Layout.astro';
 import PricingChart from '../components/common/PricingChart.tsx';
 import CongestionChart from '../components/common/CongestionChart.tsx';
+import ScenarioInfo from '../components/common/ScenarioInfo.tsx';
 ---
 <Layout title="Goleta - Dayzer">
   <div class="space-y-8">
-    <h1 class="text-3xl font-bold text-gray-900 mb-8">Goleta</h1>
+    <div class="space-y-4">
+      <h1 class="text-3xl font-bold text-gray-900">Goleta</h1>
+      <div class="flex justify-center">
+        <ScenarioInfo client:load />
+      </div>
+    </div>
     <div class="grid grid-cols-1 gap-8">
       <PricingChart client:load />
       <CongestionChart client:load />
