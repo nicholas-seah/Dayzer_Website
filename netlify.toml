@@ -1,0 +1,18 @@
+[build]
+  base = "dayzer"
+  command = "npm install && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[dev]
+  command = "npm run dev"
+  port = 4321
+  targetPort = 4321
+
+[functions]
+  external_node_modules = ["@prisma/client", "@astrojs/react"]
+  node_bundler = "esbuild"
+
+# No redirects needed for Astro with Netlify adapter - it handles routing automatically
