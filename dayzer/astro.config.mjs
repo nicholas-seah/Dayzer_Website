@@ -8,5 +8,12 @@ import netlify from '@astrojs/netlify';
 export default defineConfig({
   integrations: [react(), tailwind()],
   output: 'server',
-  adapter: netlify()
+  adapter: netlify(),
+  vite: {
+    build: {
+      rollupOptions: {
+        external: ['@prisma/client']
+      }
+    }
+  }
 });
