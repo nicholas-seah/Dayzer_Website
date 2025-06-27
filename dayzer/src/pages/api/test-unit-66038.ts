@@ -7,12 +7,33 @@ export const GET: APIRoute = async ({ request }) => {
   try {
     console.log('=== Testing Unit 66038 Data ===');
     
-    // Get latest scenarioid
-    const latestScenario = await prisma.info_scenarioid_scenarioname_mapping.findFirst({
+    // Find the most recent scenarioid with "CAISO_WEEK" in the name
+    let latestScenario = await prisma.info_scenarioid_scenarioname_mapping.findFirst({
+      where: {
+        scenarioname: {
+          contains: 'CAISO_WEEK'
+        }
+      },
       orderBy: { scenarioid: 'desc' },
-      select: { scenarioid: true },
+      select: { 
+        scenarioid: true,
+        simulation_date: true 
+      },
     });
+    
+    // If no CAISO_WEEK scenario found, fall back to most recent overall
+    if (!latestScenario) {
+      latestScenario = await prisma.info_scenarioid_scenarioname_mapping.findFirst({
+        orderBy: { scenarioid: 'desc' },
+        select: { 
+          scenarioid: true,
+          simulation_date: true 
+        },
+      });
+    }
+    
     const scenarioid = latestScenario?.scenarioid;
+    const simulation_date = latestScenario?.simulation_date;
     
     console.log('Using scenarioid:', scenarioid);
     
@@ -57,6 +78,7 @@ export const GET: APIRoute = async ({ request }) => {
 
     const result = {
       scenarioid,
+      simulation_date,
       unit66038: {
         bindingConstraintsCount: unit66038InBinding[0]?.count || 0,
         resultsUnitsCount: unit66038InResults[0]?.count || 0,

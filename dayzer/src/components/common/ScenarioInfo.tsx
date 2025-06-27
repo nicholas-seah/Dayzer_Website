@@ -1,56 +1,125 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useScenario } from '../../contexts/ScenarioContext';
+import CalendarPicker from './CalendarPicker';
 
 interface ScenarioInfoProps {
   className?: string;
 }
 
 export default function ScenarioInfo({ className = '' }: ScenarioInfoProps) {
-  const [scenarioid, setScenariosid] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { selectedScenario, availableScenarios, setSelectedScenario, loading, error } = useScenario();
+  const [showCalendar, setShowCalendar] = useState(false);
 
-  useEffect(() => {
-    const fetchScenarioInfo = async () => {
-      try {
-        // Use the lmp-components endpoint to get scenarioid (it's returned in the response)
-        const response = await fetch('/api/lmp-components');
-        if (response.ok) {
-          // For now, we'll extract from any API call that returns scenarioid
-          // In the future, we could create a dedicated scenario info endpoint
-          
-          // Try the test endpoint which returns scenarioid
-          const testResponse = await fetch('/api/test-unit-66038');
-          if (testResponse.ok) {
-            const result = await testResponse.json();
-            if (result.scenarioid) {
-              setScenariosid(result.scenarioid);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch scenario info:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Format date for display
+  const formatDisplayDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return dateString;
+    }
+  };
 
-    fetchScenarioInfo();
-  }, []);
+  // Handle date selection from calendar
+  const handleDateSelect = (selectedDate: string) => {
+    // Find the scenario with the matching simulation date
+    const matchingScenario = availableScenarios.find(
+      scenario => scenario.simulation_date === selectedDate
+    );
+    
+    if (matchingScenario) {
+      setSelectedScenario(matchingScenario);
+    }
+  };
+
+  // Get available dates for the calendar
+  const getAvailableDates = () => {
+    const dates = availableScenarios.map(scenario => scenario.simulation_date);
+    console.log('ScenarioInfo - Available scenarios:', availableScenarios);
+    console.log('ScenarioInfo - Extracted dates:', dates);
+    return dates;
+  };
 
   if (loading) {
     return (
-      <div className={`text-sm text-gray-500 ${className}`}>
-        Loading scenario info...
+      <div className={`w-full ${className}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-4">
+            <div className="flex justify-center">
+              <div className="text-sm text-gray-500">Loading scenario info...</div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
-  if (!scenarioid) {
-    return null;
+  if (error || !selectedScenario) {
+    return (
+      <div className={`w-full ${className}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-4">
+            <div className="flex justify-center">
+              <div className="text-sm text-red-500">
+                {error || 'No scenario available'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className={`inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium ${className}`}>
-      Scenario ID: {scenarioid}
+    <div className={`w-full relative ${className}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="py-4">
+          <div className="flex justify-center">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-1">
+                <span className="text-sm font-medium text-gray-500">Scenario ID:</span>
+                <span className="text-sm font-semibold text-blue-600">{selectedScenario.scenarioid}</span>
+              </div>
+              <div className="flex items-center space-x-1 relative">
+                <span className="text-sm font-medium text-gray-500">Simulation Date:</span>
+                <button
+                  onClick={() => setShowCalendar(!showCalendar)}
+                  className="text-sm font-semibold text-gray-900 hover:text-blue-600 cursor-pointer underline decoration-dotted underline-offset-2 flex items-center space-x-1"
+                >
+                  <span>{formatDisplayDate(selectedScenario.simulation_date)}</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </button>
+                
+                {/* Calendar Picker */}
+                {showCalendar && (
+                  <div className="absolute top-full left-0 mt-2 z-50">
+                    <CalendarPicker
+                      availableDates={getAvailableDates()}
+                      selectedDate={selectedScenario.simulation_date}
+                      onDateSelect={handleDateSelect}
+                      onClose={() => setShowCalendar(false)}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Overlay to close calendar when clicking outside */}
+      {showCalendar && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setShowCalendar(false)}
+        />
+      )}
     </div>
   );
 } 

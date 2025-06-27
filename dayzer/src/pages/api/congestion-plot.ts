@@ -24,15 +24,27 @@ export const GET: APIRoute = async ({ request }) => {
     
     if (requestedScenarioid) {
       scenarioid = parseInt(requestedScenarioid, 10);
-      console.log('Using requested scenarioid:', scenarioid);
     } else {
-      // Find the most recent scenarioid
-      const latestScenario = await prisma.info_scenarioid_scenarioname_mapping.findFirst({
+      // Find the most recent scenarioid with "CAISO_WEEK" in the name
+      let latestScenario = await prisma.info_scenarioid_scenarioname_mapping.findFirst({
+        where: {
+          scenarioname: {
+            contains: 'CAISO_WEEK'
+          }
+        },
         orderBy: { scenarioid: 'desc' },
         select: { scenarioid: true },
       });
+      
+      // If no CAISO_WEEK scenario found, fall back to most recent overall
+      if (!latestScenario) {
+        latestScenario = await prisma.info_scenarioid_scenarioname_mapping.findFirst({
+          orderBy: { scenarioid: 'desc' },
+          select: { scenarioid: true },
+        });
+      }
+      
       scenarioid = latestScenario?.scenarioid || null;
-      console.log('Found latest scenarioid:', scenarioid);
     }
     
     if (!scenarioid) {

@@ -12,14 +12,39 @@ if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
 }
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ request }) => {
   try {
-    // Find the most recent scenarioid
-    const latestScenario = await prisma.info_scenarioid_scenarioname_mapping.findFirst({
-      orderBy: { scenarioid: 'desc' },
-      select: { scenarioid: true },
-    });
-    const scenarioid = latestScenario?.scenarioid;
+    // Get parameters from query
+    const url = new URL(request.url);
+    const requestedScenarioid = url.searchParams.get('scenarioid');
+    
+    let scenarioid: number | null = null;
+    
+    if (requestedScenarioid) {
+      scenarioid = parseInt(requestedScenarioid, 10);
+    } else {
+      // Find the most recent scenarioid with "CAISO_WEEK" in the name
+      let latestScenario = await prisma.info_scenarioid_scenarioname_mapping.findFirst({
+        where: {
+          scenarioname: {
+            contains: 'CAISO_WEEK'
+          }
+        },
+        orderBy: { scenarioid: 'desc' },
+        select: { scenarioid: true },
+      });
+      
+      // If no CAISO_WEEK scenario found, fall back to most recent overall
+      if (!latestScenario) {
+        latestScenario = await prisma.info_scenarioid_scenarioname_mapping.findFirst({
+          orderBy: { scenarioid: 'desc' },
+          select: { scenarioid: true },
+        });
+      }
+      
+      scenarioid = latestScenario?.scenarioid || null;
+    }
+
     if (!scenarioid) {
       return new Response(
         JSON.stringify({ scenarioid: null, data: [] }),
@@ -33,23 +58,23 @@ export const GET: APIRoute = async () => {
     // Query the zone_demand table for the latest scenarioid
     const zoneDemandData = await prisma.zone_demand.findMany({
       where: { scenarioid },
-      select: { Date: true, generationmw: true },
+      select: { Date: true, demandmw: true },
     });
 
-    // Calculate daily averages of generationmw
-    const dailyAverages = zoneDemandData.reduce((acc: Record<string, { sum: number; count: number }>, curr: { Date: Date; generationmw: number | null }) => {
+    // Calculate daily averages of demandmw
+    const dailyAverages = zoneDemandData.reduce((acc: Record<string, { sum: number; count: number }>, curr: { Date: Date; demandmw: number | null }) => {
       const date = curr.Date.toISOString().split('T')[0];
       if (!acc[date]) {
         acc[date] = { sum: 0, count: 0 };
       }
-      acc[date].sum += curr.generationmw || 0;
+      acc[date].sum += curr.demandmw || 0;
       acc[date].count += 1;
       return acc;
     }, {});
 
-    const result = (Object.entries(dailyAverages) as [string, { sum: number; count: number }][]).map(([date, { sum, count }]) => ({
+    const result = Object.entries(dailyAverages).map(([date, { sum, count }]) => ({
       date,
-      generationmw: count > 0 ? sum / count : 0,
+      demandmw: count > 0 ? sum / count : 0,
     }));
 
     return new Response(JSON.stringify({ scenarioid, data: result }), {

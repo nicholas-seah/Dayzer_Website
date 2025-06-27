@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
+import { useScenario } from '../../contexts/ScenarioContext';
 
 interface CongestionData {
   datetime: string;
@@ -77,15 +78,26 @@ const generateColors = (count: number): string[] => {
 };
 
 export default function CongestionChart() {
+  const { selectedScenario } = useScenario();
   const [data, setData] = useState<CongestionData[]>([]);
   const [metadata, setMetadata] = useState<CongestionResponse['metadata'] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hoveredData, setHoveredData] = useState<CongestionData | null>(null);
+  const [pinnedData, setPinnedData] = useState<CongestionData | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!selectedScenario) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
       try {
-        const response = await fetch('/api/congestion-plot');
+        const response = await fetch(`/api/congestion-plot?scenarioid=${selectedScenario.scenarioid}`);
         if (!response.ok) {
           throw new Error('Failed to fetch congestion data');
         }
@@ -100,7 +112,7 @@ export default function CongestionChart() {
     };
 
     fetchData();
-  }, []);
+  }, [selectedScenario]);
 
   // Custom tick formatter for y-axis to show whole numbers
   const formatYAxisTick = (value: number) => {
@@ -134,6 +146,11 @@ export default function CongestionChart() {
   const CustomTooltipContent = ({ active, payload, label }: any) => {
     if (!active || !payload || !payload.length) {
       return null;
+    }
+
+    // Update hovered data for the table (only if not pinned)
+    if (active && payload[0]?.payload && !pinnedData) {
+      setHoveredData(payload[0].payload);
     }
 
     // Filter out zero/near-zero values
@@ -213,6 +230,31 @@ export default function CongestionChart() {
     );
   };
 
+  // Handle mouse leave to clear hovered data (only if not pinned)
+  const handleMouseLeave = () => {
+    if (!pinnedData) {
+      setHoveredData(null);
+    }
+  };
+
+  // Handle click to pin/unpin data
+  const handleChartClick = (event: any) => {
+    if (event && event.activePayload && event.activePayload.length > 0) {
+      const clickedData = event.activePayload[0].payload;
+      if (pinnedData && pinnedData.datetime === clickedData.datetime) {
+        // Clicking on the same pinned data - unpin it
+        setPinnedData(null);
+      } else {
+        // Pin the clicked data
+        setPinnedData(clickedData);
+        setHoveredData(null); // Clear hover data when pinning
+      }
+    } else {
+      // Clicked on empty space - unpin
+      setPinnedData(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="w-full h-96 bg-white rounded-lg shadow-lg p-6 flex items-center justify-center">
@@ -274,12 +316,56 @@ export default function CongestionChart() {
   // Use original data (no need to recalculate since showing all constraints)
   const chartData = data;
 
+  // Prepare table data when hovering or pinned
+  const getTableData = () => {
+    const activeData = pinnedData || hoveredData;
+    if (!activeData || !metadata) return [];
+    
+    const datetime = activeData.datetime;
+    const tableRows = [];
+    
+    // Add constraints with their values
+    for (const constraintName of displayConstraints) {
+      const value = Number(activeData[constraintName]) || 0;
+      if (Math.abs(value) >= 0.01) {
+        const details = metadata.constraintDetails[constraintName]?.[datetime];
+        tableRows.push({
+          name: constraintName,
+          value: value,
+          shiftFactor: details?.shiftFactor || null,
+          shadowPrice: details?.shadowprice || null
+        });
+      }
+    }
+    
+    // Sort by value (highest to lowest)
+    tableRows.sort((a, b) => b.value - a.value);
+    
+    // Add Total Congestion at the end
+    const totalCongestion = Number(activeData['Total Congestion']) || 0;
+    if (totalCongestion !== 0) {
+      tableRows.push({
+        name: 'Total Congestion',
+        value: totalCongestion,
+        shiftFactor: null,
+        shadowPrice: null
+      });
+    }
+    
+    return tableRows;
+  };
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
       <h2 className="text-xl font-semibold text-gray-800 mb-6">Congestion Analysis</h2>
       <div style={{ width: '100%', height: '600px' }}>
         <ResponsiveContainer>
-          <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 60, bottom: 25 }}>
+          <ComposedChart 
+            data={chartData} 
+            margin={{ top: 20, right: 30, left: 60, bottom: 25 }}
+            onMouseLeave={handleMouseLeave}
+            onClick={handleChartClick}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" opacity={0.5} />
             <XAxis 
               dataKey="datetime" 
@@ -348,6 +434,66 @@ export default function CongestionChart() {
             />
           </ComposedChart>
         </ResponsiveContainer>
+      </div>
+      
+      {/* Hover Details Table */}
+      <div className="mt-6 border-t pt-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-medium text-gray-800">
+            {pinnedData 
+              ? `Constraint Details - ${formatTooltipLabel(pinnedData.datetime)} (Pinned)` 
+              : hoveredData 
+                ? `Constraint Details - ${formatTooltipLabel(hoveredData.datetime)}` 
+                : 'Constraint Details'
+            }
+          </h3>
+          {pinnedData && (
+            <button 
+              onClick={() => setPinnedData(null)}
+              className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+            >
+              Unpin
+            </button>
+          )}
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-gray-50 border border-gray-200 rounded-lg">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">Constraint Name</th>
+                <th className="px-4 py-2 text-right text-sm font-medium text-gray-700 border-b">Congestion ($/MWh)</th>
+                <th className="px-4 py-2 text-right text-sm font-medium text-gray-700 border-b">Shift Factor</th>
+                <th className="px-4 py-2 text-right text-sm font-medium text-gray-700 border-b">Shadow Price ($/MWh)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(pinnedData || hoveredData) ? (
+                getTableData().map((row, index) => (
+                  <tr key={index} className={`${row.name === 'Total Congestion' ? 'border-t-2 border-gray-400 font-semibold bg-blue-50' : 'hover:bg-gray-100'}`}>
+                    <td className="px-4 py-2 text-sm text-gray-800 border-b">
+                      {row.name}
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-800 text-right border-b">
+                      ${row.value.toFixed(2)}
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-600 text-right border-b">
+                      {row.shiftFactor !== null ? row.shiftFactor.toFixed(3) : '—'}
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-600 text-right border-b">
+                      {row.shadowPrice !== null ? `$${row.shadowPrice.toFixed(2)}` : '—'}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-gray-500 text-sm">
+                    Hover over the chart to view constraint details, or click to pin data for a specific time period
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

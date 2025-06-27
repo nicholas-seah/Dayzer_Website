@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
+import { useScenario } from '../../contexts/ScenarioContext';
 
 interface LmpData {
   datetime: string;
@@ -20,14 +21,23 @@ interface LmpData {
 }
 
 export default function PricingChart() {
+  const { selectedScenario } = useScenario();
   const [data, setData] = useState<LmpData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!selectedScenario) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
       try {
-        const response = await fetch('/api/lmp-components');
+        const response = await fetch(`/api/lmp-components?scenarioid=${selectedScenario.scenarioid}`);
         if (!response.ok) {
           throw new Error('Failed to fetch pricing data');
         }
@@ -41,7 +51,7 @@ export default function PricingChart() {
     };
 
     fetchData();
-  }, []);
+  }, [selectedScenario]);
 
   // Custom tick formatter for y-axis to show whole numbers
   const formatYAxisTick = (value: number) => {
