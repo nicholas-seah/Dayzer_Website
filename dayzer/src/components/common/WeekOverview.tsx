@@ -243,23 +243,23 @@ const WeekOverview: React.FC = () => {
               
               return (
                 <div key={index} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm h-64">
-                  <div className="text-sm font-medium text-gray-600 mb-6">{item.component}</div>
+                  <div className="text-sm font-medium text-gray-600 mb-4">{item.component}</div>
                   
                   {/* Side-by-side comparison */}
-                  <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="text-center">
-                      <div className="text-xs text-gray-500 mb-3">This Week</div>
-                      <div className="text-4xl font-bold text-gray-900">
+                      <div className="text-xs text-gray-500 mb-2">This Week</div>
+                      <div className="text-3xl font-bold text-gray-900">
                         {item.thisWeekAvg.toFixed(1)}
                       </div>
-                      <div className="text-sm text-gray-500 mt-2">GW</div>
+                      <div className="text-sm text-gray-500 mt-1">GW</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-xs text-gray-500 mb-3">Last Week</div>
-                      <div className="text-4xl font-bold text-red-500">
+                      <div className="text-xs text-gray-500 mb-2">Last Week</div>
+                      <div className="text-3xl font-bold text-red-500">
                         {item.lastWeekAvg.toFixed(1)}
                       </div>
-                      <div className="text-sm text-red-400 mt-2">GW</div>
+                      <div className="text-sm text-red-400 mt-1">GW</div>
                     </div>
                   </div>
                   
@@ -294,24 +294,24 @@ const WeekOverview: React.FC = () => {
               const trendDisplay = getTrendDisplay(item);
               
               return (
-                <div key={index} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm h-64 w-[calc(50%-1.5rem)]">
-                  <div className="text-sm font-medium text-gray-600 mb-6">{item.component}</div>
+                <div key={index} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm h-64" style={{ width: 'calc(50% - 12px)' }}>
+                  <div className="text-sm font-medium text-gray-600 mb-4">{item.component}</div>
                   
                   {/* Side-by-side comparison */}
-                  <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="text-center">
-                      <div className="text-xs text-gray-500 mb-3">This Week</div>
-                      <div className="text-4xl font-bold text-gray-900">
+                      <div className="text-xs text-gray-500 mb-2">This Week</div>
+                      <div className="text-3xl font-bold text-gray-900">
                         {item.thisWeekAvg.toFixed(1)}
                       </div>
-                      <div className="text-sm text-gray-500 mt-2">GW</div>
+                      <div className="text-sm text-gray-500 mt-1">GW</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-xs text-gray-500 mb-3">Last Week</div>
-                      <div className="text-4xl font-bold text-red-500">
+                      <div className="text-xs text-gray-500 mb-2">Last Week</div>
+                      <div className="text-3xl font-bold text-red-500">
                         {item.lastWeekAvg.toFixed(1)}
                       </div>
-                      <div className="text-sm text-red-400 mt-2">GW</div>
+                      <div className="text-sm text-red-400 mt-1">GW</div>
                     </div>
                   </div>
                   
