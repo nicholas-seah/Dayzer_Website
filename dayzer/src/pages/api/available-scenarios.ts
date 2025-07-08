@@ -31,6 +31,20 @@ export const GET: APIRoute = async ({ request }) => {
       }
     });
 
+    console.log('=== DEBUG: All CAISO_WEEK scenarios ===');
+    console.log('Total scenarios found:', caisoWeekScenarios.length);
+    
+    // Look for July 1st scenario specifically
+    const july1Scenario = caisoWeekScenarios.find(s => s.scenarioname === 'CAISO_WEEK202507010500R');
+    console.log('July 1st scenario found:', july1Scenario);
+    
+    // Show scenarios with null simulation_date
+    const nullDateScenarios = caisoWeekScenarios.filter(s => !s.simulation_date);
+    console.log('Scenarios with null simulation_date:', nullDateScenarios.length);
+    if (nullDateScenarios.length > 0) {
+      console.log('Null date scenarios:', nullDateScenarios.map(s => s.scenarioname));
+    }
+
     // Filter out scenarios without simulation_date and format the response
     const availableScenarios = caisoWeekScenarios
       .filter(scenario => scenario.simulation_date)
@@ -46,6 +60,13 @@ export const GET: APIRoute = async ({ request }) => {
         const dateB = new Date(b.simulation_date as string);
         return dateB.getTime() - dateA.getTime();
       });
+
+    console.log('=== DEBUG: After filtering ===');
+    console.log('Available scenarios after filtering:', availableScenarios.length);
+    
+    // Check if July 1st made it through filtering
+    const july1Available = availableScenarios.find(s => s.scenarioname === 'CAISO_WEEK202507010500R');
+    console.log('July 1st in available scenarios:', july1Available);
 
     // Find the most recent scenario as the default (first in sorted array)
     const defaultScenario = availableScenarios.length > 0 ? availableScenarios[0] : null;

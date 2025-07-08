@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useScenario } from '../../contexts/ScenarioContext';
 import {
   LineChart,
   Line,
@@ -15,6 +16,7 @@ interface NetLoadDataPoint {
   totalDemand: number;
   renewableGeneration: number;
   netLoad: number;
+  caisoNetLoad: number | null;
 }
 
 interface NetLoadResponse {
@@ -23,14 +25,21 @@ interface NetLoadResponse {
 }
 
 const NetLoadChart: React.FC = () => {
+  const { selectedScenario } = useScenario();
   const [data, setData] = useState<NetLoadDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!selectedScenario) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
       try {
-        const response = await fetch('/api/net-load');
+        const response = await fetch(`/api/net-load-with-caiso?scenarioid=${selectedScenario.scenarioid}`);
         const result: NetLoadResponse = await response.json();
         
         if (response.ok) {
@@ -48,13 +57,14 @@ const NetLoadChart: React.FC = () => {
     };
 
     fetchData();
-  }, []);
+  }, [selectedScenario]);
 
   const formatTooltip = (value: number, name: string) => {
     const displayNames: { [key: string]: string } = {
       totalDemand: 'Total Demand',
       renewableGeneration: 'Renewable Generation',
-      netLoad: 'Net Load'
+      netLoad: 'Net Load',
+      caisoNetLoad: 'CAISO Net Load'
     };
     
     return [`${value.toFixed(2)} GW`, displayNames[name] || name];
@@ -84,8 +94,8 @@ const NetLoadChart: React.FC = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg">
-      <h2 className="text-xl font-semibold text-gray-800 mb-6">Net Load</h2>
+    <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+      <h2 className="text-xl font-semibold text-gray-800 mb-6">Load</h2>
 
       {loading && <div className="text-gray-600">Loading chart data...</div>}
       {error && <div className="text-red-600">Error: {error}</div>}
@@ -120,7 +130,8 @@ const NetLoadChart: React.FC = () => {
                   const displayNames: { [key: string]: string } = {
                     totalDemand: 'Total Demand',
                     renewableGeneration: 'Renewable Generation',
-                    netLoad: 'Net Load'
+                    netLoad: 'Net Load',
+                    caisoNetLoad: 'CAISO Net Load'
                   };
                   return displayNames[value] || value;
                 }}
@@ -146,14 +157,25 @@ const NetLoadChart: React.FC = () => {
                 strokeDasharray=""
               />
               
-              {/* Renewable Generation - Green dashed line */}
+              {/* CAISO Net Load - Red dotted line */}
+              <Line
+                type="monotone"
+                dataKey="caisoNetLoad"
+                stroke="#DC2626"
+                strokeWidth={2}
+                dot={false}
+                strokeDasharray="8 4"
+                connectNulls={false}
+              />
+              
+              {/* Renewable Generation - Green solid line */}
               <Line
                 type="monotone"
                 dataKey="renewableGeneration"
                 stroke="#10B981"
                 strokeWidth={2}
                 dot={false}
-                strokeDasharray="5 5"
+                strokeDasharray=""
               />
             </LineChart>
           </ResponsiveContainer>

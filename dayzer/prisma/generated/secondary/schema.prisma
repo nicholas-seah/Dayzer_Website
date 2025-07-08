@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/secondary"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_SECONDARY")
+}
+
+model caiso_bess_fleet_data {
+  utc_datetime_ib   DateTime @db.Timestamp(6)
+  local_datetime_ib DateTime @db.Timestamp(6)
+  entity            String   @db.VarChar(50)
+  attribute         String   @db.VarChar(50)
+  value             Decimal? @db.Decimal
+
+  @@id([utc_datetime_ib, local_datetime_ib, entity, attribute])
+}
+
+model eox_forwards {
+  curve_date     DateTime @db.Timestamp(6)
+  iso            String   @db.VarChar(50)
+  market         String   @db.VarChar(50)
+  peak_hour      String   @db.VarChar(50)
+  contract_begin DateTime @db.Timestamp(6)
+  mid            Decimal? @db.Decimal
+  bid            Decimal? @db.Decimal
+  ask            Decimal? @db.Decimal
+  atc            Decimal? @db.Decimal
+  hr             Decimal? @db.Decimal
+
+  @@id([curve_date, iso, market, peak_hour, contract_begin])
+}
+
+model eox_tags {
+  iso       String @db.VarChar(50)
+  market    String @db.VarChar(50)
+  peak_hour String @db.VarChar(50)
+
+  @@id([iso, market, peak_hour])
+}
+
+/// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.
+// model evelyn_budgets {
+// }
+
+/// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.
+// model evelyn_revenue_metrics {
+// }
+
+model goleta_ascend_data {
+  utc_datetime_ib   DateTime @db.Timestamp(6)
+  local_datetime_ib DateTime @db.Timestamp(6)
+  strategy          String   @db.VarChar(50)
+  attribute         String   @db.VarChar(50)
+  value             Float?
+
+  @@id([utc_datetime_ib, local_datetime_ib, strategy, attribute])
+}
+
+/// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.
+// model goleta_battery_data {
+// }
+
+model goleta_budgets {
+  utc_datetime_ib   DateTime @db.Timestamp(6)
+  local_datetime_ib DateTime @db.Timestamp(6)
+  entity            String   @db.VarChar(50)
+  attribute         String   @db.VarChar(50)
+  value             Decimal? @db.Decimal
+
+  @@id([utc_datetime_ib, local_datetime_ib, entity, attribute])
+}
+
+model goleta_charging_constraints {
+  year  Int
+  month Int
+  hour  Int
+  value Decimal? @db.Decimal
+
+  @@id([year, month, hour])
+}
+
+model goleta_operational_data {
+  utc_datetime_ib   DateTime @db.Timestamp(6)
+  local_datetime_ib DateTime @db.Timestamp(6)
+  entity            String   @db.VarChar(50)
+  attribute         String   @db.VarChar(50)
+  value             Float?
+
+  @@id([utc_datetime_ib, local_datetime_ib, entity, attribute])
+}
+
+/// We could not retrieve columns for the underlying table. Either it has none or you are missing rights to see them. Please check your privileges.
+// model goleta_operational_data_overrides {
+// }
+
+model goleta_revenue_metrics {
+  utc_datetime_ib   DateTime @db.Timestamp(6)
+  local_datetime_ib DateTime @db.Timestamp(6)
+  entity            String   @db.VarChar(50)
+  attribute         String   @db.VarChar(50)
+  value             Float?
+
+  @@id([utc_datetime_ib, local_datetime_ib, entity, attribute])
+}
+
+model goleta_scheduling_data {
+  utc_datetime_ib   DateTime @db.Timestamp(6)
+  local_datetime_ib DateTime @db.Timestamp(6)
+  entity            String   @db.VarChar(50)
+  attribute         String   @db.VarChar(50)
+  value             Float?
+
+  @@id([utc_datetime_ib, local_datetime_ib, entity, attribute])
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model goleta_tags {
+  cadence   String?  @db.VarChar(25)
+  units     String?  @db.VarChar(25)
+  scaling   Decimal? @db.Decimal
+  entity    String?  @db.VarChar(50)
+  attribute String?  @db.VarChar(50)
+
+  @@ignore
+}
+
+model internal_forecasts {
+  flowdatestart     DateTime? @db.Timestamp(6)
+  term              String?   @db.VarChar(25)
+  markdate          DateTime  @db.Timestamp(6)
+  marklocation      String    @db.VarChar(25)
+  markmarket        String    @db.VarChar(25)
+  curvecreator      String    @db.VarChar(25)
+  currentcurve      Boolean
+  valuetype         String    @db.VarChar(25)
+  value             Decimal?  @db.Decimal
+  units             String?   @db.VarChar(50)
+  marktype          String?   @db.VarChar(50)
+  marktypedesc      String?   @db.VarChar(250)
+  gridstorpurpose   String?   @db.VarChar(250)
+  tablecreationtime DateTime? @db.Timestamp(6)
+
+  @@id([markdate, marklocation, markmarket, curvecreator, currentcurve, valuetype])
+}
+
+model monthly_revenue_forecasts {
+  forecastmonth    DateTime @db.Timestamp(6)
+  markdate         DateTime @db.Timestamp(6)
+  curvename        String   @db.VarChar(100)
+  casetype         String   @db.VarChar(100)
+  optimizationtype String   @db.VarChar(100)
+  location         String   @db.VarChar(100)
+  pricetype        String   @db.VarChar(50)
+  price            Decimal? @db.Decimal
+  unit             String?  @db.VarChar(25)
+
+  @@id([forecastmonth, markdate, curvename, casetype, optimizationtype, location, pricetype])
+}
+
+model yes_fundamentals {
+  utc_datetime_ib   DateTime @db.Timestamp(6)
+  local_datetime_ib DateTime @db.Timestamp(6)
+  entity            String   @db.VarChar(50)
+  attribute         String   @db.VarChar(50)
+  value             Float?
+
+  @@id([utc_datetime_ib, local_datetime_ib, entity, attribute])
+}
+
+model yes_ids {
+  node_name String? @db.VarChar(50)
+  object_id String  @id @db.VarChar(50)
+  iso       String? @db.VarChar(50)
+  tz        String? @db.VarChar(50)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model yes_pulls {
+  objectid             String?  @db.VarChar(50)
+  name                 String?  @db.VarChar(50)
+  endpoint             String?  @db.VarChar(50)
+  agglevel             String?  @db.VarChar(50)
+  freq                 String?  @db.VarChar(50)
+  tz                   String?  @db.VarChar(50)
+  timedelta            Decimal? @db.Decimal
+  endpointdatabasename String?  @db.VarChar(50)
+
+  @@ignore
+}

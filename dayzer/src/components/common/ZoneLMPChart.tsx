@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useScenario } from '../../contexts/ScenarioContext';
 import {
   AreaChart,
   Area,
@@ -32,6 +33,7 @@ interface LMPResponse {
 }
 
 const ZoneLMPChart: React.FC = () => {
+  const { selectedScenario } = useScenario();
   const [data, setData] = useState<LMPDataPoint[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [selectedZone, setSelectedZone] = useState<number | null>(null);
@@ -41,8 +43,12 @@ const ZoneLMPChart: React.FC = () => {
   // First, fetch zones list
   useEffect(() => {
     const fetchZones = async () => {
+      if (!selectedScenario) {
+        return;
+      }
+
       try {
-        const response = await fetch('/api/zone-lmp');
+        const response = await fetch(`/api/zone-lmp?scenarioid=${selectedScenario.scenarioid}`);
         const result: LMPResponse = await response.json();
         
         if (response.ok) {
@@ -56,12 +62,22 @@ const ZoneLMPChart: React.FC = () => {
     };
 
     fetchZones();
-  }, []);
+  }, [selectedScenario]);
+
+  // Auto-select Southern CA Edison as default zone
+  useEffect(() => {
+    if (zones.length > 0 && selectedZone === null) {
+      const sceZone = zones.find(zone => zone.name === "Southern CA Edison");
+      if (sceZone) {
+        setSelectedZone(sceZone.id);
+      }
+    }
+  }, [zones, selectedZone]);
 
   // Fetch data for selected zone
   useEffect(() => {
     const fetchData = async () => {
-      if (!selectedZone) {
+      if (!selectedScenario || !selectedZone) {
         setData([]);
         setLoading(false);
         return;
@@ -69,7 +85,7 @@ const ZoneLMPChart: React.FC = () => {
 
       setLoading(true);
       try {
-        const response = await fetch(`/api/zone-lmp?zoneid=${selectedZone}`);
+        const response = await fetch(`/api/zone-lmp?scenarioid=${selectedScenario.scenarioid}&zoneid=${selectedZone}`);
         const result: LMPResponse = await response.json();
         
         if (response.ok) {
@@ -87,7 +103,7 @@ const ZoneLMPChart: React.FC = () => {
     };
 
     fetchData();
-  }, [selectedZone]);
+  }, [selectedScenario, selectedZone]);
 
   const formatTooltip = (value: number, name: string) => {
     const displayName = name === 'totalLMP' ? 'Total LMP' : 
@@ -119,7 +135,7 @@ const ZoneLMPChart: React.FC = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg">
+    <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-800">Zone LMP Components</h2>
         <div className="flex items-center space-x-2">

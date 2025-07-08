@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useScenario } from '../../contexts/ScenarioContext';
 import {
   ComposedChart,
   Area,
@@ -23,6 +24,7 @@ interface SupplyResponse {
 }
 
 const SupplyStackChart: React.FC = () => {
+  const { selectedScenario } = useScenario();
   const [data, setData] = useState<SupplyDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,8 +33,14 @@ const SupplyStackChart: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!selectedScenario) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
       try {
-        const response = await fetch('/api/supply-stack');
+        const response = await fetch(`/api/supply-stack?scenarioid=${selectedScenario.scenarioid}`);
         const result: SupplyResponse = await response.json();
         
         if (response.ok) {
@@ -66,7 +74,7 @@ const SupplyStackChart: React.FC = () => {
     };
 
     fetchData();
-  }, []);
+  }, [selectedScenario]);
 
   // Calculate total generation dynamically based on visible fuels
   const processedData = data.map(point => {
@@ -139,18 +147,19 @@ const SupplyStackChart: React.FC = () => {
 
   // Color mapping for different fuel types
   const fuelColors: { [key: string]: string } = {
-    'Solar': '#FCD34D',
-    'Wind': '#34D399',
-    'Hydro': '#60A5FA',
-    'Natural Gas': '#F87171',
-    'Nuclear': '#A78BFA',
-    'Battery': '#FB7185',
-    'Geothermal': '#FBBF24',
-    'Other': '#9CA3AF',
+    'Solar': '#FFD700',        // Gold - bright and distinct
+    'Wind': '#00CED1',         // Dark Turquoise - distinct blue-green
+    'Hydro': '#1E90FF',        // Dodger Blue - clear blue
+    'Natural Gas': '#FF6347',  // Tomato Red - distinct red
+    'Fuel Oil': '#8B0000',     // Dark Red - darker than Natural Gas
+    'Nuclear': '#9932CC',      // Dark Orchid - distinct purple
+    'Battery': '#FF1493',      // Deep Pink - very distinct
+    'Geothermal': '#FF8C00',   // Dark Orange - distinct from yellow/red
+    'Other': '#708090',        // Slate Gray - neutral distinct
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg">
+    <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
       <h2 className="text-xl font-semibold text-gray-800 mb-6">Hourly Supply Stack</h2>
 
       {loading && <div className="text-gray-600">Loading chart data...</div>}

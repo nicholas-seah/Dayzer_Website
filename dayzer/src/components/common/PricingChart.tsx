@@ -98,11 +98,11 @@ export default function PricingChart() {
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg">
-      <h2 className="text-xl font-semibold text-gray-800 mb-6">Pricing</h2>
+    <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+      <h2 className="text-xl font-semibold text-gray-800 mb-6">LMP Breakdown</h2>
       <div style={{ width: '100%', height: '500px' }}>
         <ResponsiveContainer>
-          <ComposedChart data={data} margin={{ top: 20, right: 30, left: 60, bottom: 25 }}>
+          <ComposedChart data={data} margin={{ top: 20, right: 30, left: 30, bottom: 25 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" opacity={0.5} />
             <XAxis 
               dataKey="datetime" 
@@ -114,26 +114,25 @@ export default function PricingChart() {
             />
             <YAxis 
               label={{ 
-                value: 'Price ($/MWh)', 
+                value: '$/MWh', 
                 angle: -90, 
                 position: 'insideLeft',
                 style: { textAnchor: 'middle' }
               }}
               domain={[
-                (dataMin: number) => Math.floor(dataMin / 10) * 10,
-                (dataMax: number) => Math.ceil(dataMax / 10) * 10
+                (dataMin: number) => Math.floor(dataMin / 20) * 20,
+                (dataMax: number) => Math.ceil(dataMax / 20) * 20
               ]}
               tickFormatter={formatYAxisTick}
-              interval={0}
               ticks={(() => {
                 if (data.length === 0) return [];
                 const allValues = data.flatMap(d => [d.Energy, d.Congestion, d.Loss, d.LMP]);
                 const min = Math.min(...allValues);
                 const max = Math.max(...allValues);
-                const tickMin = Math.floor(min / 10) * 10;
-                const tickMax = Math.ceil(max / 10) * 10;
+                const tickMin = Math.floor(min / 20) * 20;
+                const tickMax = Math.ceil(max / 20) * 20;
                 const ticks = [];
-                for (let i = tickMin; i <= tickMax; i += 10) {
+                for (let i = tickMin; i <= tickMax; i += 20) {
                   ticks.push(i);
                 }
                 return ticks;

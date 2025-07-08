@@ -356,13 +356,13 @@ export default function CongestionChart() {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg">
+    <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
       <h2 className="text-xl font-semibold text-gray-800 mb-6">Congestion Analysis</h2>
       <div style={{ width: '100%', height: '600px' }}>
         <ResponsiveContainer>
           <ComposedChart 
             data={chartData} 
-            margin={{ top: 20, right: 30, left: 60, bottom: 25 }}
+            margin={{ top: 20, right: 30, left: 30, bottom: 25 }}
             onMouseLeave={handleMouseLeave}
             onClick={handleChartClick}
           >
@@ -377,7 +377,7 @@ export default function CongestionChart() {
             />
             <YAxis 
               label={{ 
-                value: 'Congestion ($/MWh)', 
+                value: '$/MWh', 
                 angle: -90, 
                 position: 'insideLeft',
                 style: { textAnchor: 'middle' }
@@ -456,7 +456,7 @@ export default function CongestionChart() {
             </button>
           )}
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto h-80">
           <table className="min-w-full bg-gray-50 border border-gray-200 rounded-lg">
             <thead className="bg-gray-100">
               <tr>
@@ -469,12 +469,14 @@ export default function CongestionChart() {
             <tbody>
               {(pinnedData || hoveredData) ? (
                 getTableData().map((row, index) => (
-                  <tr key={index} className={`${row.name === 'Total Congestion' ? 'border-t-2 border-gray-400 font-semibold bg-blue-50' : 'hover:bg-gray-100'}`}>
+                  <tr key={index} className={`${row.name === 'Total Congestion' ? 'border-t-2 border-gray-400 bg-blue-50' : 'hover:bg-gray-100'}`}>
                     <td className="px-4 py-2 text-sm text-gray-800 border-b">
                       {row.name}
                     </td>
-                    <td className="px-4 py-2 text-sm text-gray-800 text-right border-b">
-                      ${row.value.toFixed(2)}
+                    <td className={`px-4 py-2 text-sm text-right border-b font-mono ${
+                      row.value > 0 ? 'text-green-600' : row.value < 0 ? 'text-red-600' : 'text-gray-800'
+                    }`}>
+                      {row.value >= 0 ? '+' : ''}${row.value.toFixed(2)}
                     </td>
                     <td className="px-4 py-2 text-sm text-gray-600 text-right border-b">
                       {row.shiftFactor !== null ? row.shiftFactor.toFixed(3) : '—'}

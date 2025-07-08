@@ -142,12 +142,49 @@ export const GET: APIRoute = async ({ request }) => {
       })
       .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
 
-    console.log('Processed net load data count:', processedData.length);
-    console.log('First 3 processed records:', processedData.slice(0, 3));
+    // Get CAISO Net Load forecast data from yes_fundamentals table
+    const caisoNetLoadResults = await prisma.yes_fundamentals.findMany({
+      where: {
+        attribute: 'DA_NET_LOAD_FORECAST',
+        entity: 'CAISO'
+      },
+      orderBy: [
+        { local_datetime_lb: 'asc' }
+      ],
+      select: {
+        local_datetime_lb: true,
+        value: true,
+      },
+    });
+
+    console.log('Raw CAISO Net Load count:', caisoNetLoadResults.length);
+
+    // Process CAISO Net Load data - convert hour beginning to hour ending and to GW
+    const caisoNetLoadByDatetime: { [key: string]: number } = {};
+    caisoNetLoadResults.forEach((row: { local_datetime_lb: Date | null; value: number | null }) => {
+      if (row.local_datetime_lb && row.value) {
+        // Convert hour beginning to hour ending by adding 1 hour
+        const datetime = new Date(row.local_datetime_lb);
+        datetime.setHours(datetime.getHours() + 1);
+        const datetimeKey = datetime.toISOString();
+        
+        // Convert MW to GW
+        caisoNetLoadByDatetime[datetimeKey] = row.value / 1000;
+      }
+    });
+
+    // Add CAISO Net Load to the processed data
+    const finalProcessedData = processedData.map(item => ({
+      ...item,
+      caisoNetLoad: caisoNetLoadByDatetime[item.datetime] || null,
+    }));
+
+    console.log('Processed net load data count:', finalProcessedData.length);
+    console.log('First 3 processed records:', finalProcessedData.slice(0, 3));
 
     return new Response(JSON.stringify({ 
       scenarioid, 
-      data: processedData 
+      data: finalProcessedData 
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

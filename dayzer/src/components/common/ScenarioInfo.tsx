@@ -47,7 +47,7 @@ export default function ScenarioInfo({ className = '' }: ScenarioInfoProps) {
   if (loading) {
     return (
       <div className={`w-full ${className}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-4">
             <div className="flex justify-center">
               <div className="text-sm text-gray-500">Loading scenario info...</div>
@@ -61,7 +61,7 @@ export default function ScenarioInfo({ className = '' }: ScenarioInfoProps) {
   if (error || !selectedScenario) {
     return (
       <div className={`w-full ${className}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-4">
             <div className="flex justify-center">
               <div className="text-sm text-red-500">
@@ -76,7 +76,7 @@ export default function ScenarioInfo({ className = '' }: ScenarioInfoProps) {
 
   return (
     <div className={`w-full relative ${className}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-4">
           <div className="flex justify-center">
             <div className="flex items-center space-x-6">

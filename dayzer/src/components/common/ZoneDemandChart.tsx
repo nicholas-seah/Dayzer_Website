@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useScenario } from '../../contexts/ScenarioContext';
 import {
   AreaChart,
   Area,
@@ -21,6 +22,7 @@ interface ZoneDemandResponse {
 }
 
 const ZoneDemandChart: React.FC = () => {
+  const { selectedScenario } = useScenario();
   const [data, setData] = useState<ZoneDemandDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,8 +30,14 @@ const ZoneDemandChart: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!selectedScenario) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
       try {
-        const response = await fetch('/api/zone-demand');
+        const response = await fetch(`/api/zone-demand?scenarioid=${selectedScenario.scenarioid}`);
         const result: ZoneDemandResponse = await response.json();
         
         if (response.ok) {
@@ -56,7 +64,7 @@ const ZoneDemandChart: React.FC = () => {
     };
 
     fetchData();
-  }, []);
+  }, [selectedScenario]);
 
   const formatTooltip = (value: number, name: string) => {
     return [`${value.toFixed(2)} GW`, name];
@@ -94,7 +102,7 @@ const ZoneDemandChart: React.FC = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg">
+    <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
       <h2 className="text-xl font-semibold text-gray-800 mb-6">Hourly Zone Demand</h2>
 
       {loading && <div className="text-gray-600">Loading chart data...</div>}

@@ -87,6 +87,7 @@ export const GET: APIRoute = async ({ request }) => {
       else if (fuelName === 'Wind') fuelName = 'Wind';
       else if (fuelName === 'Water') fuelName = 'Hydro';
       else if (fuelName && fuelName.includes('NG_')) fuelName = 'Natural Gas';
+      else if (fuelName && fuelName.includes('FO2')) fuelName = 'Fuel Oil';
       else if (fuelName === 'Landfill') fuelName = 'Other';
       else if (fuelName === 'Refuse') fuelName = 'Other';
       else if (fuelName === 'OTHER') fuelName = 'Other';

@@ -21,7 +21,7 @@ export default function CalendarPicker({
 
   // Convert calendar date to DD-MonthName-YYYY format to match database format
   const formatDateForComparison = (date: Date) => {
-    const day = String(date.getDate()).padStart(2, '0');
+    const day = String(date.getDate());
     const month = date.toLocaleDateString('en-US', { month: 'short' });
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
