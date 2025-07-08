@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useScenario } from '../../contexts/ScenarioContext';
 import {
   ResponsiveContainer,
@@ -32,7 +32,7 @@ interface WeeklyLMPResponse {
   };
 }
 
-export default function WeeklyLMPComparison() {
+export default React.memo(function WeeklyLMPComparison() {
   const { selectedScenario } = useScenario();
   const [data, setData] = useState<LMPDataPoint[]>([]);
   const [metadata, setMetadata] = useState<WeeklyLMPResponse['metadata'] | null>(null);
@@ -40,7 +40,6 @@ export default function WeeklyLMPComparison() {
   const [error, setError] = useState<string | null>(null);
   const [hoveredData, setHoveredData] = useState<LMPDataPoint | null>(null);
   const [pinnedData, setPinnedData] = useState<LMPDataPoint | null>(null);
-  const [cursorPosition, setCursorPosition] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,7 +70,7 @@ export default function WeeklyLMPComparison() {
   }, [selectedScenario]);
 
   // Custom tick formatter for x-axis to show day names at appropriate intervals
-  const formatXAxisTick = (tickItem: string, index: number) => {
+  const formatXAxisTick = useCallback((tickItem: string, index: number) => {
     const date = new Date(tickItem);
     const hour = date.getHours();
     
@@ -81,55 +80,55 @@ export default function WeeklyLMPComparison() {
       return dayNames[date.getDay()];
     }
     return '';
-  };
+  }, []);
 
   // Filter data to show day names at proper intervals (every 24 hours, at beginning of each day)
-  const getXAxisTicks = () => {
+  const getXAxisTicks = useMemo(() => {
     const ticks: string[] = [];
     for (let i = 0; i < data.length; i += 24) { // Start at hour 0 (beginning of day), then every 24 hours
       ticks.push(data[i].datetime);
     }
     return ticks;
-  };
+  }, [data]);
 
   // Handle mouse events for custom tooltip area
-  const handleMouseMove = (data: any) => {
+  const handleMouseMove = useCallback((data: any) => {
     if (data && data.activePayload && data.activePayload[0] && !pinnedData) {
-      setHoveredData(data.activePayload[0].payload);
-      setCursorPosition(data.activePayload[0].payload.datetime);
+      const newHoveredData = data.activePayload[0].payload;
+      
+      // Only update if the data actually changed
+      if (!hoveredData || hoveredData.datetime !== newHoveredData.datetime) {
+        setHoveredData(newHoveredData);
+      }
     }
-  };
+  }, [pinnedData, hoveredData]);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     if (!pinnedData) {
       setHoveredData(null);
-      setCursorPosition(null);
     }
-  };
+  }, [pinnedData]);
 
   // Handle click to pin/unpin data
-  const handleChartClick = (event: any) => {
+  const handleChartClick = useCallback((event: any) => {
     if (event && event.activePayload && event.activePayload.length > 0) {
       const clickedData = event.activePayload[0].payload;
       if (pinnedData && pinnedData.datetime === clickedData.datetime) {
         // Clicking on the same pinned data - unpin it
         setPinnedData(null);
-        setCursorPosition(null);
       } else {
         // Pin the clicked data
         setPinnedData(clickedData);
         setHoveredData(null); // Clear hover data when pinning
-        setCursorPosition(null); // Clear cursor position when pinning
       }
     } else {
       // Clicked on empty space - unpin
       setPinnedData(null);
-      setCursorPosition(null);
     }
-  };
+  }, [pinnedData]);
 
   // Format datetime for display
-  const formatDateTime = (date: Date) => 
+  const formatDateTime = useCallback((date: Date) => 
     `${date.toLocaleDateString('en-US', { 
       month: 'short', 
       day: 'numeric',
@@ -138,7 +137,50 @@ export default function WeeklyLMPComparison() {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true 
-    })}`;
+    })}`, []);
+
+  // Memoize the active data for the info table
+  const activeData = useMemo(() => pinnedData || hoveredData, [pinnedData, hoveredData]);
+
+  // Memoize the table content to prevent unnecessary recalculations
+  const tableContent = useMemo(() => {
+    if (!activeData) return null;
+    
+    const forecastDate = new Date(activeData.datetime);
+    const lastWeekDate = new Date(forecastDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const forecastLMP = activeData.thisWeekLMP;
+    const lastWeekLMP = activeData.lastWeekLMP;
+    
+    // Calculate difference and percentage
+    let difference = null;
+    let percentageChange = null;
+    let changeDisplay = 'N/A';
+    
+    if (forecastLMP !== null && lastWeekLMP !== null) {
+      difference = forecastLMP - lastWeekLMP;
+      percentageChange = ((difference / lastWeekLMP) * 100);
+      const arrow = difference > 0 ? '↑' : difference < 0 ? '↓' : '→';
+      const sign = difference > 0 ? '+' : '';
+      changeDisplay = `${arrow} ${sign}$${difference.toFixed(2)} (${sign}${percentageChange.toFixed(1)}%)`;
+    }
+    
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const forecastDay = dayNames[forecastDate.getDay()];
+    const lastWeekDay = dayNames[lastWeekDate.getDay()];
+    const sameDay = forecastDay === lastWeekDay;
+    
+    return {
+      forecastDate,
+      lastWeekDate,
+      forecastLMP,
+      lastWeekLMP,
+      difference,
+      changeDisplay,
+      forecastDay,
+      lastWeekDay,
+      sameDay
+    };
+  }, [activeData]);
 
   if (loading) {
     return (
@@ -180,7 +222,7 @@ export default function WeeklyLMPComparison() {
             <XAxis 
               dataKey="datetime"
               tickFormatter={formatXAxisTick}
-              ticks={getXAxisTicks()}
+              ticks={getXAxisTicks}
               tick={{ fontSize: 11 }}
               tickLine={false}
               interval={0}
@@ -196,17 +238,6 @@ export default function WeeklyLMPComparison() {
               tick={{ fontSize: 11 }}
             />
             <Legend />
-            
-            {/* Vertical line on hover */}
-            {cursorPosition && (
-              <ReferenceLine 
-                x={cursorPosition} 
-                stroke="#666666" 
-                strokeWidth={1} 
-                strokeDasharray="2 2"
-                opacity={0.7}
-              />
-            )}
             
             {/* This Week's LMP - Solid Black Line */}
             <Line
@@ -236,7 +267,7 @@ export default function WeeklyLMPComparison() {
       
       {/* Fixed info area below chart */}
       <div className="mt-2 h-32 flex items-center">
-        {(pinnedData || hoveredData) ? (
+        {activeData ? (
           <div className="w-full">
             {pinnedData && (
               <div className="flex justify-end mb-2">
@@ -259,66 +290,38 @@ export default function WeeklyLMPComparison() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(() => {
-                    const activeData = pinnedData || hoveredData;
-                    if (!activeData) return null;
-                    
-                    const forecastDate = new Date(activeData.datetime);
-                    const lastWeekDate = new Date(forecastDate.getTime() - 7 * 24 * 60 * 60 * 1000);
-                    const forecastLMP = activeData.thisWeekLMP;
-                    const lastWeekLMP = activeData.lastWeekLMP;
-                    
-                    // Calculate difference and percentage
-                    let difference = null;
-                    let percentageChange = null;
-                    let changeDisplay = 'N/A';
-                    
-                    if (forecastLMP !== null && lastWeekLMP !== null) {
-                      difference = forecastLMP - lastWeekLMP;
-                      percentageChange = ((difference / lastWeekLMP) * 100);
-                      const arrow = difference > 0 ? '↑' : difference < 0 ? '↓' : '→';
-                      const sign = difference > 0 ? '+' : '';
-                      changeDisplay = `${arrow} ${sign}$${difference.toFixed(2)} (${sign}${percentageChange.toFixed(1)}%)`;
-                    }
-                    
-                    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                    const forecastDay = dayNames[forecastDate.getDay()];
-                    const lastWeekDay = dayNames[lastWeekDate.getDay()];
-                    const sameDay = forecastDay === lastWeekDay;
-                    
-                    return (
-                      <>
-                        <tr className="border-b border-gray-200">
-                          <td className="py-1 px-2 font-medium text-gray-600 text-xs">Time</td>
-                          <td className="py-1 px-2 text-black text-xs">{formatDateTime(forecastDate)}</td>
-                          <td className="py-1 px-2 text-red-500 text-xs">{formatDateTime(lastWeekDate)}</td>
-                          <td className="py-1 px-2 text-gray-600 text-xs">{sameDay ? 'Same Hour' : 'Different Hour'}</td>
-                        </tr>
-                        <tr className="border-b border-gray-200">
-                          <td className="py-1 px-2 font-medium text-gray-600 text-xs">LMP</td>
-                          <td className="py-1 px-2 text-black text-xs">
-                            {forecastLMP !== null ? `$${Number(forecastLMP).toFixed(2)}/MWh` : 'No data'}
-                          </td>
-                          <td className="py-1 px-2 text-red-500 text-xs">
-                            {lastWeekLMP !== null ? `$${Number(lastWeekLMP).toFixed(2)}/MWh` : 'No data'}
-                          </td>
-                          <td className={`py-1 px-2 font-medium text-xs ${
-                            difference === null ? 'text-gray-400' : 
-                            difference > 0 ? 'text-green-600' : 
-                            difference < 0 ? 'text-red-600' : 'text-gray-600'
-                          }`}>
-                            {changeDisplay}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="py-1 px-2 font-medium text-gray-600 text-xs">Day</td>
-                          <td className="py-1 px-2 text-black text-xs">{forecastDay}</td>
-                          <td className="py-1 px-2 text-red-500 text-xs">{lastWeekDay}</td>
-                          <td className="py-1 px-2 text-gray-600 text-xs">{sameDay ? 'Same Day' : 'Different Day'}</td>
-                        </tr>
-                      </>
-                    );
-                  })()}
+                  {tableContent && (
+                    <>
+                      <tr className="border-b border-gray-200">
+                        <td className="py-1 px-2 font-medium text-gray-600 text-xs">Time</td>
+                        <td className="py-1 px-2 text-black text-xs">{formatDateTime(tableContent.forecastDate)}</td>
+                        <td className="py-1 px-2 text-red-500 text-xs">{formatDateTime(tableContent.lastWeekDate)}</td>
+                        <td className="py-1 px-2 text-gray-600 text-xs">{tableContent.sameDay ? 'Same Hour' : 'Different Hour'}</td>
+                      </tr>
+                      <tr className="border-b border-gray-200">
+                        <td className="py-1 px-2 font-medium text-gray-600 text-xs">LMP</td>
+                        <td className="py-1 px-2 text-black text-xs">
+                          {tableContent.forecastLMP !== null ? `$${Number(tableContent.forecastLMP).toFixed(2)}/MWh` : 'No data'}
+                        </td>
+                        <td className="py-1 px-2 text-red-500 text-xs">
+                          {tableContent.lastWeekLMP !== null ? `$${Number(tableContent.lastWeekLMP).toFixed(2)}/MWh` : 'No data'}
+                        </td>
+                        <td className={`py-1 px-2 font-medium text-xs ${
+                          tableContent.difference === null ? 'text-gray-400' : 
+                          tableContent.difference > 0 ? 'text-green-600' : 
+                          tableContent.difference < 0 ? 'text-red-600' : 'text-gray-600'
+                        }`}>
+                          {tableContent.changeDisplay}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="py-1 px-2 font-medium text-gray-600 text-xs">Day</td>
+                        <td className="py-1 px-2 text-black text-xs">{tableContent.forecastDay}</td>
+                        <td className="py-1 px-2 text-red-500 text-xs">{tableContent.lastWeekDay}</td>
+                        <td className="py-1 px-2 text-gray-600 text-xs">{tableContent.sameDay ? 'Same Day' : 'Different Day'}</td>
+                      </tr>
+                    </>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -331,4 +334,4 @@ export default function WeeklyLMPComparison() {
       </div>
     </div>
   );
-} 
+}); 
