@@ -159,8 +159,8 @@ export default function PricingChart() {
               type="monotone" 
               dataKey="Congestion" 
               stackId="1" 
-              stroke="#10B981" 
-              fill="#10B981" 
+              stroke="#EF4444" 
+              fill="#EF4444" 
               fillOpacity={0.6}
               name="Congestion" 
             />

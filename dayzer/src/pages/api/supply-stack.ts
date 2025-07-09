@@ -110,8 +110,13 @@ export const GET: APIRoute = async ({ request }) => {
       const rawFuelName = row.fuelname || 'Unknown';
       const mappedFuelName = cleanFuelName(rawFuelName);
       
-      // Convert MW to GW and ensure non-negative
-      const generationGW = Math.max(0, (row.generationmw || 0) / 1000);
+      // Convert MW to GW
+      const generationGW = (row.generationmw || 0) / 1000;
+      
+      // For batteries, allow negative values (charging), but for other fuel types, ensure non-negative
+      const finalGenerationGW = (mappedFuelName === 'Battery' || rawFuelName === 'MWH') 
+        ? generationGW 
+        : Math.max(0, generationGW);
       
       if (!aggregatedData[datetimeKey]) {
         aggregatedData[datetimeKey] = {};
@@ -121,7 +126,7 @@ export const GET: APIRoute = async ({ request }) => {
         aggregatedData[datetimeKey][mappedFuelName] = 0;
       }
       
-      aggregatedData[datetimeKey][mappedFuelName] += generationGW;
+      aggregatedData[datetimeKey][mappedFuelName] += finalGenerationGW;
     });
 
     // Convert to array format and add total generation

@@ -403,7 +403,7 @@ export default function ImpactfulConstraints() {
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-2 px-2 font-medium text-gray-700">Constraint Name</th>
                   <th className="text-right py-2 px-2 font-medium text-gray-700">Avg Congestion ($/MWh)</th>
-                  <th className="text-right py-2 px-2 font-medium text-gray-700">Binding Hours</th>
+                  <th className="text-right py-2 px-2 font-medium text-gray-700">Hours</th>
                 </tr>
               </thead>
               <tbody>

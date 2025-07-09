@@ -176,7 +176,7 @@ const ZoneLMPChart: React.FC = () => {
               />
               <YAxis 
                 label={{ 
-                  value: 'Price ($)', 
+                  value: '$/MWh', 
                   angle: -90, 
                   position: 'insideLeft',
                   style: { textAnchor: 'middle' }
