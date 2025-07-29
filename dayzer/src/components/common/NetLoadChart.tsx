@@ -157,11 +157,11 @@ const NetLoadChart: React.FC = () => {
                 strokeDasharray=""
               />
               
-              {/* CAISO Net Load - Red dotted line */}
+              {/* CAISO Net Load - Yellow/orange dotted line */}
               <Line
                 type="monotone"
                 dataKey="caisoNetLoad"
-                stroke="#DC2626"
+                stroke="#F59E0B"
                 strokeWidth={2}
                 dot={false}
                 strokeDasharray="8 4"
