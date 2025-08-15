@@ -1,5 +1,12 @@
+// @ts-check
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+import tailwind from '@astrojs/tailwind';
+import netlify from '@astrojs/netlify';
+
 export default defineConfig({
   site: 'https://gridstordayzer.netlify.app',
+  base: '/dayzer',
   integrations: [react(), tailwind()],
   output: 'server',
   adapter: netlify(),
@@ -9,9 +16,5 @@ export default defineConfig({
         external: ['@prisma/client']
       }
     }
-  },
-  // Add this to handle proxying
-  experimental: {
-    assets: true
   }
 });
