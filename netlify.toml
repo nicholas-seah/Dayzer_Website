@@ -22,8 +22,4 @@
     X-Frame-Options = "SAMEORIGIN"
     Content-Security-Policy = "frame-ancestors 'self' https://gridstoranalytics.com https://*.gridstoranalytics.com"
 
-# Removed catch-all redirect that was conflicting with main site proxy
-[[redirects]]
-  from = "/"
-  to = "/dayzer/"
-  status = 301
+# Removed problematic redirect that was causing 404 errors
