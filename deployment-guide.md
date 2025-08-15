@@ -2,58 +2,47 @@
 
 ## Architecture Overview
 
-This repository contains the **Dayzer** sub-site for the main GridStor Analytics platform. It will be deployed as a separate Netlify site but accessible under the main domain structure.
+This repository contains the **Dayzer** sub-site for the main GridStor Analytics platform. It is deployed at `https://gridstordayzer.netlify.app/` and will be accessible under the main domain structure.
 
 ### Structure:
 - **Main Site**: `gridstoranalytics.com` (separate repository)
-- **This Sub-site (Dayzer)**: `gridstoranalytics.com/dayzer`
+- **This Sub-site (Dayzer)**: `gridstoranalytics.com/dayzer` → `https://gridstordayzer.netlify.app/`
 - **Other Sub-sites**: `gridstoranalytics.com/curve-viewer`, `gridstoranalytics.com/about`, etc.
 
-## Step-by-Step Deployment
+## Current Deployment Status
 
-### 1. Deploy the Dayzer Sub-site
+✅ **Already Deployed**: The Dayzer site is live at `https://gridstordayzer.netlify.app/`
 
-1. **Deploy this repository to Netlify**:
-   ```bash
-   # Push your Dayzer site to GitHub
-   git add .
-   git commit -m "Configure Dayzer as GridStor Analytics sub-site"
-   git push origin main
-   ```
+## Integration with Main Site
 
-2. **Netlify Configuration**:
-   - Connect this repository to Netlify as a new site
-   - Use the naming convention: `dayzer--gridstoranalytics`
-   - This creates the URL: `dayzer--gridstoranalytics.netlify.app`
-   - Add environment variable: `SITE_PASSWORD=your_secure_password_here`
-
-### 2. Configure Main Site Redirects
+### Configure Main Site Redirects
 
 The main GridStor Analytics site needs to add this redirect in their `netlify.toml`:
 
 ```toml
 [[redirects]]
   from = "/dayzer/*"
-  to = "https://dayzer--gridstoranalytics.netlify.app/:splat"
+  to = "https://gridstordayzer.netlify.app/:splat"
   status = 200
   force = true
   headers = {X-Frame-Options = "SAMEORIGIN"}
 ```
 
-### 3. Password Protection Setup
+### Password Protection Setup
 
 #### Environment Variables
 
-Set this in the Netlify site's environment variables:
+Set this in the existing Netlify site's environment variables:
 - `SITE_PASSWORD`: Your shared password (same across all GridStor Analytics sub-sites)
 
 #### How It Works
 
 1. Users visit the main site at `gridstoranalytics.com`
 2. When they click "Launch Dayzer", they're directed to `gridstoranalytics.com/dayzer`
-3. If not authenticated, they're redirected to the login page
-4. After successful login, they can navigate seamlessly between all GridStor Analytics tools
-5. All sub-sites share the same authentication cookie
+3. This redirects to `https://gridstordayzer.netlify.app/`
+4. If not authenticated, they're redirected to the login page
+5. After successful login, they can navigate seamlessly between all GridStor Analytics tools
+6. All sub-sites share the same authentication cookie
 
 ## Current GridStor Analytics Structure
 
@@ -88,7 +77,7 @@ The navigation component in this sub-site links back to the main GridStor Analyt
 
 ## Security Considerations
 
-1. **HTTPS Only**: Ensure the sub-site uses HTTPS
+1. **HTTPS Only**: The sub-site uses HTTPS at `gridstordayzer.netlify.app`
 2. **Cookie Security**: Cookies are set with `secure`, `httpOnly`, and `sameSite` flags
 3. **Content Security Policy**: Allows embedding only from GridStor Analytics domains
 4. **Environment Variables**: Keep passwords in Netlify environment variables
@@ -113,10 +102,16 @@ This will generate the necessary configuration files for new sub-sites.
 
 ### Testing:
 
-1. Test the Dayzer sub-site URL directly: `https://dayzer--gridstoranalytics.netlify.app`
-2. Test via main site: `https://gridstoranalytics.com/dayzer`
+1. Test the Dayzer sub-site URL directly: `https://gridstordayzer.netlify.app/`
+2. Test via main site: `https://gridstoranalytics.com/dayzer` (after main site adds redirect)
 3. Test authentication flow
 4. Test navigation between different GridStor Analytics tools
+
+## Next Steps
+
+1. **Add Environment Variable**: Set `SITE_PASSWORD` in the Netlify dashboard for `gridstordayzer.netlify.app`
+2. **Coordinate with Main Site**: Share the integration instructions with the main GridStor Analytics team
+3. **Test Integration**: Verify the redirect and authentication flow works properly
 
 ## Maintenance
 

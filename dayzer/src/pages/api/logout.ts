@@ -1,11 +1,9 @@
 import type { APIRoute } from 'astro';
 
-export const POST: APIRoute = async ({ cookies, redirect }) => {
-  // Clear the authentication cookie
-  cookies.delete('site-auth', {
-    path: '/',
-  });
-  
-  // Redirect to login page
-  return redirect('/login');
+// Logout API removed - no password protection needed
+// This file can be deleted
+
+export const POST: APIRoute = async ({ redirect }) => {
+  // No authentication system, just redirect to home
+  return redirect('/');
 }; 

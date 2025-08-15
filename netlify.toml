@@ -15,11 +15,6 @@
   external_node_modules = ["@prisma/client", "@astrojs/react"]
   node_bundler = "esbuild"
 
-# Password protection for this Dayzer sub-site
-[context.production]
-  [context.production.environment]
-    SITE_PASSWORD = "your_secure_password_here"
-
 # Headers to allow embedding in main GridStor Analytics site
 [[headers]]
   for = "/*"

@@ -10,7 +10,7 @@ To integrate the Dayzer sub-site into the main GridStor Analytics platform, plea
 # Add this to your main site's netlify.toml
 [[redirects]]
   from = "/dayzer/*"
-  to = "https://dayzer--gridstoranalytics.netlify.app/:splat"
+  to = "https://gridstordayzer.netlify.app/:splat"
   status = 200
   force = true
   headers = {X-Frame-Options = "SAMEORIGIN"}
@@ -32,8 +32,8 @@ Ensure the main site and Dayzer sub-site use the same:
 
 ### 4. Netlify Site Configuration
 
-The Dayzer sub-site should be deployed with:
-- Site name: `dayzer--gridstoranalytics`
+The Dayzer sub-site is already deployed at:
+- Site URL: `https://gridstordayzer.netlify.app/`
 - Environment variable: `SITE_PASSWORD` (same value as main site)
 
 ## Expected User Flow
