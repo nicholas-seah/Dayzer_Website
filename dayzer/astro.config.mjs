@@ -6,7 +6,6 @@ import netlify from '@astrojs/netlify';
 
 export default defineConfig({
   site: 'https://gridstordayzer.netlify.app',
-  base: '/dayzer',
   integrations: [react(), tailwind()],
   output: 'server',
   adapter: netlify(),
