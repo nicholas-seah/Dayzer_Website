@@ -9,11 +9,18 @@ export default defineConfig({
   integrations: [react(), tailwind()],
   output: 'server',
   adapter: netlify(),
+  build: {
+    assets: '_astro'
+  },
   vite: {
     build: {
       rollupOptions: {
         external: ['@prisma/client']
       }
+    },
+    define: {
+      // Ensure assets load from correct domain
+      'import.meta.env.ASSET_URL': JSON.stringify('https://gridstordayzer.netlify.app')
     }
   }
 });

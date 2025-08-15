@@ -2,10 +2,22 @@
 import Layout from '../layouts/Layout.astro';
 import MECOverviewChart from '../components/common/MECOverviewChart';
 
+// Get the correct base URL for API calls
+const getBaseUrl = () => {
+  // If accessed via proxy, use the original site URL
+  if (Astro.url.hostname === 'gridstoranalytics.com') {
+    return 'https://gridstordayzer.netlify.app';
+  }
+  // Otherwise use the current origin
+  return Astro.url.origin;
+};
+
+const baseUrl = getBaseUrl();
+
 // Fetch TB2.6 data dynamically
 let tb26Data;
 try {
-  const response = await fetch(`${Astro.url.origin}/api/tb26-calculation`);
+  const response = await fetch(`${baseUrl}/api/tb26-calculation`);
   if (response.ok) {
     tb26Data = await response.json();
   } else {
@@ -20,7 +32,7 @@ try {
 // Fetch Weekly Congestion data dynamically
 let weeklyCongestionData;
 try {
-  const response = await fetch(`${Astro.url.origin}/api/weekly-congestion`);
+  const response = await fetch(`${baseUrl}/api/weekly-congestion`);
   if (response.ok) {
     weeklyCongestionData = await response.json();
   } else {
