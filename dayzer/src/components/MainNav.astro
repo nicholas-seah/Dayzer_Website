@@ -1,0 +1,61 @@
+---
+export interface Props {
+  currentPath?: string;
+}
+
+const { currentPath = '' } = Astro.props;
+
+const navItems = [
+  { href: 'https://gridstoranalytics.com/', label: 'Home', active: false },
+  { href: 'https://gridstoranalytics.com/curve-viewer', label: 'Curve Viewer', active: currentPath.startsWith('/curve-viewer') },
+  { href: 'https://gridstoranalytics.com/dayzer', label: 'Dayzer', active: true }, // This is the current site
+  { href: 'https://gridstoranalytics.com/about', label: 'About', active: currentPath.startsWith('/about') },
+  // Add more sub-sites as they're created (forecasts, analytics, etc.)
+];
+---
+
+<nav class="bg-white shadow-sm border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <div class="flex">
+        <div class="flex-shrink-0 flex items-center">
+          <a href="https://gridstoranalytics.com/" class="text-xl font-bold text-gray-900">
+            GridStor Analytics
+          </a>
+        </div>
+        <div class="ml-6 flex space-x-8">
+          {navItems.map((item) => (
+            <a
+              href={item.href}
+              class={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                item.active
+                  ? 'border-indigo-500 text-gray-900'
+                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+              }`}
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
+      </div>
+      
+      <div class="flex items-center">
+        <form action="/api/logout" method="POST" class="inline">
+          <button
+            type="submit"
+            class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+          >
+            Logout
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<style>
+  /* Smooth transitions for navigation */
+  nav a {
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+</style> 

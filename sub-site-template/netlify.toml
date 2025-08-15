@@ -1,5 +1,4 @@
 [build]
-  base = "dayzer"
   command = "npm install && npm run build"
   publish = "dist"
 
@@ -9,26 +8,21 @@
 [dev]
   command = "npm run dev"
   port = 4321
-  targetPort = 4321
 
-[functions]
-  external_node_modules = ["@prisma/client", "@astrojs/react"]
-  node_bundler = "esbuild"
-
-# Password protection for this Dayzer sub-site
+# Password protection for sub-sites
 [context.production]
   [context.production.environment]
     SITE_PASSWORD = "your_secure_password_here"
 
-# Headers to allow embedding in main GridStor Analytics site
+# Headers to allow embedding in main site
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "SAMEORIGIN"
     Content-Security-Policy = "frame-ancestors 'self' https://gridstoranalytics.com https://*.gridstoranalytics.com"
 
-# Catch-all redirect for Astro routing
+# Catch-all redirect for SPA routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
-  status = 200
+  status = 200 
