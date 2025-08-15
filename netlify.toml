@@ -22,8 +22,4 @@
     X-Frame-Options = "SAMEORIGIN"
     Content-Security-Policy = "frame-ancestors 'self' https://gridstoranalytics.com https://*.gridstoranalytics.com"
 
-# Catch-all redirect for Astro routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Removed catch-all redirect that was conflicting with main site proxy
