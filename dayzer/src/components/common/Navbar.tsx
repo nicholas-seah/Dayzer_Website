@@ -25,104 +25,123 @@ const Navbar: React.FC = () => {
   ];
 
   // Determine if we're on a PCM page (dropdown pages)
-  const isPCMActive = currentPath === '/market-ops/pcm/caiso-forecast' || currentPath === '/market-ops/pcm/goleta';
+  const isPCMActive = currentPath.startsWith('/market-ops/pcm/');
   const isLikedayActive = currentPath === '/market-ops/likeday';
   const isMLActive = currentPath === '/market-ops/ml';
   const isGOOPActive = currentPath === '/market-ops/goop';
 
   return (
-    <nav className="bg-white border-b border-gray-200 h-16">
-      <div className="max-w-7xl mx-auto h-16 flex items-center px-4 sm:px-6 lg:px-8" style={{ fontFamily: `'Inter', system-ui, -apple-system, sans-serif` }}>
-        {/* Logo */}
-        <div className="flex-shrink-0 flex items-center">
-          <a href="/market-ops" className="flex items-center">
-            <img src="/logo.svg" alt="Market Ops" className="h-8 w-auto cursor-pointer mr-2" />
-            <span className="text-xl font-bold text-gray-900 cursor-pointer">Market Ops</span>
-          </a>
-        </div>
-        
-        {/* Navigation */}
-        <div className="hidden sm:flex sm:ml-6 flex h-full space-x-8">
-          {/* Likeday Tab */}
-          <a
-            href="/market-ops/likeday"
-            className={`h-full flex items-center px-1 pt-1 text-sm font-medium transition-colors duration-150 border-b-2 ${
-              isLikedayActive 
-                ? 'border-indigo-500 text-gray-900' 
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-            style={{ fontFamily: `'Inter', system-ui, -apple-system, sans-serif` }}
-          >
-            Likeday
-          </a>
-
-          {/* PCM Dropdown */}
-          <div 
-            className="relative h-full flex items-center"
-            onMouseEnter={() => setIsDropdownOpen(true)}
-            onMouseLeave={() => setIsDropdownOpen(false)}
-          >
-            <button
-              className={`h-full flex items-center px-1 pt-1 text-sm font-medium transition-colors duration-150 border-b-2 ${
-                isPCMActive 
-                  ? 'border-indigo-500 text-gray-900' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-              style={{ fontFamily: `'Inter', system-ui, -apple-system, sans-serif` }}
+    <header className="bg-[#2A2A2A] text-white shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center py-4">
+          {/* Left side: Logo + Navigation */}
+          <div className="flex items-center gap-8">
+            {/* GridStor Analytics Logo + Market Ops Text */}
+            <a 
+              href="https://gridstoranalytics.com" 
+              className="flex items-center gap-3 text-xl font-bold hover:text-gray-300 transition-colors"
+              style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
             >
-              PCM
-              <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <div className="bg-white p-1 flex items-center justify-center">
+                <img src="/logo.svg" alt="GridStor Analytics Logo" className="w-6 h-6" />
+              </div>
+              Market Ops
+            </a>
+            
+            {/* Navigation */}
+            <nav className="hidden lg:flex items-center gap-8">
+              {/* Likeday Tab */}
+              <a
+                href="/market-ops/likeday"
+                className={`hover:text-gray-300 transition-colors font-medium ${
+                  isLikedayActive ? 'text-gray-300' : 'text-white'
+                }`}
+                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+              >
+                Likeday
+              </a>
+
+              {/* PCM Dropdown */}
+              <div 
+                className="relative"
+                onMouseEnter={() => setIsDropdownOpen(true)}
+                onMouseLeave={() => setIsDropdownOpen(false)}
+              >
+                <button
+                  className={`flex items-center hover:text-gray-300 transition-colors font-medium ${
+                    isPCMActive ? 'text-gray-300' : 'text-white'
+                  }`}
+                  style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                >
+                  PCM
+                  <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {/* Dropdown Menu */}
+                {isDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                    <div className="py-1">
+                      {dropdownItems.map((item) => (
+                        <a
+                          key={item.name}
+                          href={item.href}
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150"
+                          style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+                        >
+                          {item.name}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* ML Tab */}
+              <a
+                href="/market-ops/ml"
+                className={`hover:text-gray-300 transition-colors font-medium ${
+                  isMLActive ? 'text-gray-300' : 'text-white'
+                }`}
+                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+              >
+                ML
+              </a>
+
+              {/* GOOP Tab */}
+              <a
+                href="/market-ops/goop"
+                className={`hover:text-gray-300 transition-colors font-medium ${
+                  isGOOPActive ? 'text-gray-300' : 'text-white'
+                }`}
+                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+              >
+                GOOP
+              </a>
+            </nav>
+          </div>
+          
+          {/* Right side: Settings + User icons */}
+          <div className="flex items-center gap-2 ml-4">
+            {/* Settings Icon */}
+            <button className="p-2 hover:bg-gray-700 rounded-md transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
               </svg>
             </button>
             
-            {/* Dropdown Menu */}
-            {isDropdownOpen && (
-              <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                <div className="py-1">
-                  {dropdownItems.map((item) => (
-                    <a
-                      key={item.name}
-                      href={item.href}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150"
-                      style={{ fontFamily: `'Inter', system-ui, -apple-system, sans-serif` }}
-                    >
-                      {item.name}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* User Profile Icon */}
+            <button className="p-2 hover:bg-gray-700 rounded-md transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+            </button>
           </div>
-
-          {/* ML Tab */}
-          <a
-            href="/market-ops/ml"
-            className={`h-full flex items-center px-1 pt-1 text-sm font-medium transition-colors duration-150 border-b-2 ${
-              isMLActive 
-                ? 'border-indigo-500 text-gray-900' 
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-            style={{ fontFamily: `'Inter', system-ui, -apple-system, sans-serif` }}
-          >
-            ML
-          </a>
-
-          {/* GOOP Tab */}
-          <a
-            href="/market-ops/goop"
-            className={`h-full flex items-center px-1 pt-1 text-sm font-medium transition-colors duration-150 border-b-2 ${
-              isGOOPActive 
-                ? 'border-indigo-500 text-gray-900' 
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-            style={{ fontFamily: `'Inter', system-ui, -apple-system, sans-serif` }}
-          >
-            GOOP
-          </a>
         </div>
       </div>
-    </nav>
+    </header>
   );
 };
 
