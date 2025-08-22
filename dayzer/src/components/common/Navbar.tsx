@@ -20,31 +20,32 @@ const Navbar: React.FC = () => {
   }, []);
 
   const dropdownItems = [
-    { name: 'CAISO Fundamentals', href: '/caiso-forecast' },
-    { name: 'Goleta', href: '/goleta' },
+    { name: 'CAISO Fundamentals', href: '/market-ops/pcm/caiso-forecast' },
+    { name: 'Goleta', href: '/market-ops/pcm/goleta' },
   ];
 
-  // Determine if we're on a Dayzer page (dropdown pages)
-  const isDayzerActive = currentPath === '/caiso-forecast' || currentPath === '/goleta';
-  const isLikedayActive = currentPath === '/likeday';
-  const isMLActive = currentPath === '/ml';
-  const isGOOPActive = currentPath === '/goop';
+  // Determine if we're on a PCM page (dropdown pages)
+  const isPCMActive = currentPath === '/market-ops/pcm/caiso-forecast' || currentPath === '/market-ops/pcm/goleta';
+  const isLikedayActive = currentPath === '/market-ops/likeday';
+  const isMLActive = currentPath === '/market-ops/ml';
+  const isGOOPActive = currentPath === '/market-ops/goop';
 
   return (
     <nav className="bg-white border-b border-gray-200 h-16">
       <div className="max-w-7xl mx-auto h-16 flex items-center px-4 sm:px-6 lg:px-8" style={{ fontFamily: `'Inter', system-ui, -apple-system, sans-serif` }}>
         {/* Logo */}
         <div className="flex-shrink-0 flex items-center">
-          <a href="/">
-            <img src="/logo.svg" alt="Dayzer" className="h-8 w-auto cursor-pointer" />
+          <a href="/market-ops" className="flex items-center">
+            <img src="/logo.svg" alt="Market Ops" className="h-8 w-auto cursor-pointer mr-2" />
+            <span className="text-xl font-bold text-gray-900 cursor-pointer">Market Ops</span>
           </a>
         </div>
         
         {/* Navigation */}
         <div className="hidden sm:flex sm:ml-6 flex h-full space-x-8">
-          {/* Likeday Tab - Now First */}
+          {/* Likeday Tab */}
           <a
-            href="/likeday"
+            href="/market-ops/likeday"
             className={`h-full flex items-center px-1 pt-1 text-sm font-medium transition-colors duration-150 border-b-2 ${
               isLikedayActive 
                 ? 'border-indigo-500 text-gray-900' 
@@ -55,7 +56,7 @@ const Navbar: React.FC = () => {
             Likeday
           </a>
 
-          {/* PCM Dropdown - Now Second */}
+          {/* PCM Dropdown */}
           <div 
             className="relative h-full flex items-center"
             onMouseEnter={() => setIsDropdownOpen(true)}
@@ -63,7 +64,7 @@ const Navbar: React.FC = () => {
           >
             <button
               className={`h-full flex items-center px-1 pt-1 text-sm font-medium transition-colors duration-150 border-b-2 ${
-                isDayzerActive 
+                isPCMActive 
                   ? 'border-indigo-500 text-gray-900' 
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
@@ -93,10 +94,10 @@ const Navbar: React.FC = () => {
               </div>
             )}
           </div>
-          
+
           {/* ML Tab */}
           <a
-            href="/ml"
+            href="/market-ops/ml"
             className={`h-full flex items-center px-1 pt-1 text-sm font-medium transition-colors duration-150 border-b-2 ${
               isMLActive 
                 ? 'border-indigo-500 text-gray-900' 
@@ -109,7 +110,7 @@ const Navbar: React.FC = () => {
 
           {/* GOOP Tab */}
           <a
-            href="/goop"
+            href="/market-ops/goop"
             className={`h-full flex items-center px-1 pt-1 text-sm font-medium transition-colors duration-150 border-b-2 ${
               isGOOPActive 
                 ? 'border-indigo-500 text-gray-900' 

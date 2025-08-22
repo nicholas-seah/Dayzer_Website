@@ -21,5 +21,3 @@
   [headers.values]
     X-Frame-Options = "SAMEORIGIN"
     Content-Security-Policy = "frame-ancestors 'self' https://gridstoranalytics.com https://*.gridstoranalytics.com"
-
-# Removed problematic redirect that was causing 404 errors
