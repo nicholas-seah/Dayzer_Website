@@ -40,10 +40,9 @@ const Navbar: React.FC = () => {
             <a 
               href="https://gridstoranalytics.com" 
               className="flex items-center gap-3 text-xl font-bold hover:text-gray-300 transition-colors"
-              style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
             >
               <div className="bg-white p-1 flex items-center justify-center">
-                <img src="/logo.svg" alt="GridStor Analytics Logo" className="w-6 h-6" />
+                <img src="/GST_logo.svg" alt="GridStor Analytics Logo" className="w-6 h-6" />
               </div>
               Market Ops
             </a>
@@ -53,10 +52,9 @@ const Navbar: React.FC = () => {
               {/* Likeday Tab */}
               <a
                 href="/market-ops/likeday"
-                className={`hover:text-gray-300 transition-colors font-medium ${
+                className={`hover:text-gray-300 transition-colors font-medium text-sm ${
                   isLikedayActive ? 'text-gray-300' : 'text-white'
                 }`}
-                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
               >
                 Likeday
               </a>
@@ -68,10 +66,9 @@ const Navbar: React.FC = () => {
                 onMouseLeave={() => setIsDropdownOpen(false)}
               >
                 <button
-                  className={`flex items-center hover:text-gray-300 transition-colors font-medium ${
+                  className={`flex items-center hover:text-gray-300 transition-colors font-medium text-sm ${
                     isPCMActive ? 'text-gray-300' : 'text-white'
                   }`}
-                  style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
                 >
                   PCM
                   <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,7 +85,6 @@ const Navbar: React.FC = () => {
                           key={item.name}
                           href={item.href}
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150"
-                          style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
                         >
                           {item.name}
                         </a>
@@ -101,10 +97,9 @@ const Navbar: React.FC = () => {
               {/* ML Tab */}
               <a
                 href="/market-ops/ml"
-                className={`hover:text-gray-300 transition-colors font-medium ${
+                className={`hover:text-gray-300 transition-colors font-medium text-sm ${
                   isMLActive ? 'text-gray-300' : 'text-white'
                 }`}
-                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
               >
                 ML
               </a>
@@ -112,10 +107,9 @@ const Navbar: React.FC = () => {
               {/* GOOP Tab */}
               <a
                 href="/market-ops/goop"
-                className={`hover:text-gray-300 transition-colors font-medium ${
+                className={`hover:text-gray-300 transition-colors font-medium text-sm ${
                   isGOOPActive ? 'text-gray-300' : 'text-white'
                 }`}
-                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
               >
                 GOOP
               </a>
