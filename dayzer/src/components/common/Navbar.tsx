@@ -36,14 +36,21 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center py-4">
           {/* Left side: Logo + Navigation */}
           <div className="flex items-center gap-8">
-            {/* GridStor Analytics Logo + Market Ops Text */}
+            {/* GridStor Analytics Logo */}
             <a 
               href="https://gridstoranalytics.com" 
-              className="flex items-center gap-3 text-xl font-bold hover:text-gray-300 transition-colors"
+              className="hover:text-gray-300 transition-colors"
             >
               <div className="bg-white p-1 flex items-center justify-center">
                 <img src="/GST_logo.svg" alt="GridStor Analytics Logo" className="w-6 h-6" />
               </div>
+            </a>
+            
+            {/* Market Ops Text */}
+            <a 
+              href="/market-ops" 
+              className="text-xl font-bold hover:text-gray-300 transition-colors"
+            >
               Market Ops
             </a>
             
@@ -52,8 +59,8 @@ const Navbar: React.FC = () => {
               {/* Likeday Tab */}
               <a
                 href="/market-ops/likeday"
-                className={`hover:text-gray-300 transition-colors font-medium text-sm ${
-                  isLikedayActive ? 'text-gray-300' : 'text-white'
+                className={`text-white hover:text-gray-300 transition-colors font-medium ${
+                  isLikedayActive ? 'text-gray-300' : ''
                 }`}
               >
                 Likeday
@@ -66,8 +73,8 @@ const Navbar: React.FC = () => {
                 onMouseLeave={() => setIsDropdownOpen(false)}
               >
                 <button
-                  className={`flex items-center hover:text-gray-300 transition-colors font-medium text-sm ${
-                    isPCMActive ? 'text-gray-300' : 'text-white'
+                  className={`flex items-center text-white hover:text-gray-300 transition-colors font-medium ${
+                    isPCMActive ? 'text-gray-300' : ''
                   }`}
                 >
                   PCM
@@ -97,8 +104,8 @@ const Navbar: React.FC = () => {
               {/* ML Tab */}
               <a
                 href="/market-ops/ml"
-                className={`hover:text-gray-300 transition-colors font-medium text-sm ${
-                  isMLActive ? 'text-gray-300' : 'text-white'
+                className={`text-white hover:text-gray-300 transition-colors font-medium ${
+                  isMLActive ? 'text-gray-300' : ''
                 }`}
               >
                 ML
@@ -107,8 +114,8 @@ const Navbar: React.FC = () => {
               {/* GOOP Tab */}
               <a
                 href="/market-ops/goop"
-                className={`hover:text-gray-300 transition-colors font-medium text-sm ${
-                  isGOOPActive ? 'text-gray-300' : 'text-white'
+                className={`text-white hover:text-gray-300 transition-colors font-medium ${
+                  isGOOPActive ? 'text-gray-300' : ''
                 }`}
               >
                 GOOP
