@@ -90,7 +90,7 @@ export default function MECOverviewChart() {
           {topData && dataPoint.topHours && dataPoint.topHours.length > 0 && (
             <div className="mb-4">
               <p className="text-red-600 font-medium mb-2">
-                Top 2 Hours: (Hour {dataPoint.topHours.join(' & ')}) - ${topData.value.toFixed(2)}
+                Top 2 Hours: (Hour {dataPoint.topHours.join(' & ')}) - ${topData.value.toFixed(2)}/MWh
               </p>
               {dataPoint.topHoursDetails && dataPoint.topHoursDetails.map((unit, index) => (
                 <p key={index} className="text-sm text-gray-700 ml-2">
@@ -103,7 +103,7 @@ export default function MECOverviewChart() {
           {bottomData && dataPoint.bottomHours && dataPoint.bottomHours.length > 0 && (
             <div>
               <p className="text-blue-600 font-medium mb-2">
-                Bottom 2 Hours: (Hour {dataPoint.bottomHours.join(' & ')}) - ${bottomData.value.toFixed(2)}
+                Bottom 2 Hours: (Hour {dataPoint.bottomHours.join(' & ')}) - ${bottomData.value.toFixed(2)}/MWh
               </p>
               {dataPoint.bottomHoursDetails && dataPoint.bottomHoursDetails.map((unit, index) => (
                 <p key={index} className="text-sm text-gray-700 ml-2">
@@ -182,7 +182,7 @@ export default function MECOverviewChart() {
   const yAxisTicks = generateYAxisTicks();
 
   const renderChart = (chartData: MECData[], title: string, showYAxisLabel: boolean = false, isComingSoon: boolean = false) => (
-    <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 space-y-6">
+    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4 flex flex-col">
       <h3 className="text-lg font-medium text-gray-700 text-center">{title}</h3>
       
       {isComingSoon ? (
@@ -190,76 +190,57 @@ export default function MECOverviewChart() {
           <div className="text-gray-400 text-lg">Coming Soon</div>
         </div>
       ) : (
-        <div className="h-80 w-full bg-white rounded border border-gray-100">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 20, right: 30, left: 40, bottom: 40 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis 
-                dataKey="date" 
-                tickFormatter={formatXAxisTick}
-                stroke="#6b7280"
-                fontSize={12}
-                height={40}
-              />
-              <YAxis 
-                domain={yAxisDomain}
-                stroke="#6b7280"
-                fontSize={12}
-                label={showYAxisLabel ? { 
-                  value: '$/MWh', 
-                  angle: -90, 
-                  position: 'insideLeft',
-                  style: { textAnchor: 'middle' }
-                } : undefined}
-                tickFormatter={(value) => `$${value}`}
-                ticks={yAxisTicks}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              
-              <Line
-                type="monotone"
-                dataKey="topHoursMEC"
-                stroke="#dc2626"
-                strokeWidth={2}
-                dot={{ fill: '#dc2626', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6 }}
-                name="Top 2 Hours"
-              />
-              <Line
-                type="monotone"
-                dataKey="bottomHoursMEC"
-                stroke="#2563eb"
-                strokeWidth={2}
-                dot={{ fill: '#2563eb', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6 }}
-                name="Bottom 2 Hours"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="h-80 w-full bg-white rounded border border-gray-100 flex items-center justify-center">
+          <div className="w-full h-full p-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={formatXAxisTick}
+                  stroke="#6b7280"
+                  fontSize={12}
+                  height={40}
+                />
+                <YAxis 
+                  domain={yAxisDomain}
+                  stroke="#6b7280"
+                  fontSize={12}
+                  tickFormatter={(value) => `$${value}`}
+                  ticks={yAxisTicks}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                
+                <Line
+                  type="monotone"
+                  dataKey="topHoursMEC"
+                  stroke="#dc2626"
+                  strokeWidth={2}
+                  dot={{ fill: '#dc2626', strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6 }}
+                  name="Top 2 Hours"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="bottomHoursMEC"
+                  stroke="#2563eb"
+                  strokeWidth={2}
+                  dot={{ fill: '#2563eb', strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6 }}
+                  name="Bottom 2 Hours"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
     </div>
   );
 
   return (
-    <div className="space-y-6">
-      {/* Two Charts Side by Side */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {renderChart(lastWeekData, "Last Week", true, true)}
-        {renderChart(thisWeekData, "This Week", true)}
-      </div>
-      
-      {/* Shared Legend */}
-      <div className="flex flex-wrap justify-center gap-8 text-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-0.5 bg-red-600"></div>
-          <span className="text-gray-600">Top 2 Hours</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-0.5 bg-blue-600"></div>
-          <span className="text-gray-600">Bottom 2 Hours</span>
-        </div>
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {renderChart(lastWeekData, "Last Week", true, true)}
+      {renderChart(thisWeekData, "This Week", true)}
     </div>
   );
 } 

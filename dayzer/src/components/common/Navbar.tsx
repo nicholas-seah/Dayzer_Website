@@ -32,35 +32,35 @@ const Navbar: React.FC = () => {
 
   return (
     <header className="bg-[#2A2A2A] text-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4">
+      <div className="max-w-7xl mx-auto pl-8 pr-4 sm:pl-10 sm:pr-6 lg:pl-16 lg:pr-8">
+        <div className="flex justify-between items-center py-3">
           {/* Left side: Logo + Navigation */}
-          <div className="flex items-center gap-8">
-            {/* GridStor Analytics Logo */}
-            <a 
-              href="https://gridstoranalytics.com" 
-              className="hover:text-gray-300 transition-colors"
-            >
-              <div className="bg-white p-1 flex items-center justify-center">
-                <img src="/GST_logo.svg" alt="GridStor Analytics Logo" className="w-6 h-6" />
-              </div>
-            </a>
+          <div className="flex items-center gap-7">
+                         {/* GridStor Analytics Logo */}
+             <a 
+               href="https://gridstoranalytics.com" 
+               className="hover:text-gray-300 transition-colors"
+             >
+               <div className="bg-white p-1 flex items-center justify-center">
+                 <img src="/GST_logo.svg" alt="GridStor Analytics Logo" className="w-6 h-6" />
+               </div>
+             </a>
             
-            {/* Market Ops Text */}
+            {/* Market Ops Brand Name */}
             <a 
               href="/market-ops" 
-              className="text-xl font-bold hover:text-gray-300 transition-colors"
+              className="text-lg font-semibold hover:text-gray-300 transition-colors"
             >
               Market Ops
             </a>
             
             {/* Navigation */}
-            <nav className="hidden lg:flex items-center gap-8">
+            <nav className="hidden lg:flex items-center gap-6">
               {/* Likeday Tab */}
               <a
                 href="/market-ops/likeday"
-                className={`text-white hover:text-gray-300 transition-colors font-medium ${
-                  isLikedayActive ? 'text-gray-300' : ''
+                className={`text-sm font-medium transition-colors px-3 py-1 ${
+                  isLikedayActive ? 'text-white' : 'text-gray-300 hover:text-white'
                 }`}
               >
                 Likeday
@@ -73,8 +73,8 @@ const Navbar: React.FC = () => {
                 onMouseLeave={() => setIsDropdownOpen(false)}
               >
                 <button
-                  className={`flex items-center text-white hover:text-gray-300 transition-colors font-medium ${
-                    isPCMActive ? 'text-gray-300' : ''
+                  className={`flex items-center text-sm font-medium transition-colors px-3 py-1 ${
+                    isPCMActive ? 'text-white' : 'text-gray-300 hover:text-white'
                   }`}
                 >
                   PCM
@@ -104,8 +104,8 @@ const Navbar: React.FC = () => {
               {/* ML Tab */}
               <a
                 href="/market-ops/ml"
-                className={`text-white hover:text-gray-300 transition-colors font-medium ${
-                  isMLActive ? 'text-gray-300' : ''
+                className={`text-sm font-medium transition-colors px-3 py-1 ${
+                  isMLActive ? 'text-white' : 'text-gray-300 hover:text-white'
                 }`}
               >
                 ML
@@ -114,8 +114,8 @@ const Navbar: React.FC = () => {
               {/* GOOP Tab */}
               <a
                 href="/market-ops/goop"
-                className={`text-white hover:text-gray-300 transition-colors font-medium ${
-                  isGOOPActive ? 'text-gray-300' : ''
+                className={`text-sm font-medium transition-colors px-3 py-1 ${
+                  isGOOPActive ? 'text-white' : 'text-gray-300 hover:text-white'
                 }`}
               >
                 GOOP
@@ -124,10 +124,10 @@ const Navbar: React.FC = () => {
           </div>
           
           {/* Right side: Settings + User icons */}
-          <div className="flex items-center gap-2 ml-4">
+          <div className="flex items-center gap-1">
             {/* Settings Icon */}
             <button className="p-2 hover:bg-gray-700 rounded-md transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
               </svg>
@@ -135,7 +135,7 @@ const Navbar: React.FC = () => {
             
             {/* User Profile Icon */}
             <button className="p-2 hover:bg-gray-700 rounded-md transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
               </svg>
             </button>
