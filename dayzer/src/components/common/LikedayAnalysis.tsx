@@ -241,12 +241,24 @@ const LikedayAnalysis: React.FC<LikedayAnalysisProps> = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Analysis failed');
+        let errorMessage = `Analysis failed with status ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (jsonError) {
+          // If response isn't JSON, use status text or default message
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       setProgress('Analyzing patterns...');
-      const data: LikedayResults = await response.json();
+      let data: LikedayResults;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        throw new Error('Invalid response format from server');
+      }
       
       setProgress('Generating visualizations...');
       setResults(data);
@@ -280,11 +292,22 @@ const LikedayAnalysis: React.FC<LikedayAnalysisProps> = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Debug failed');
+        let errorMessage = `Debug failed with status ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (jsonError) {
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        throw new Error('Invalid response format from server');
+      }
       setDebugInfo(data.debug);
       setProgress('');
       
