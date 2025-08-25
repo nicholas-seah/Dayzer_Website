@@ -438,7 +438,7 @@ const LikedayAnalysis: React.FC<LikedayAnalysisProps> = () => {
       }
 
       // Add similar days data
-      results.similarityScores.slice(0, topN).forEach((score: any, index: any) => {
+      results.similarityScores.slice(0, topN).forEach((score: any, index: number) => {
         const similarDayData = data.chartData?.[variable]?.[score.day];
         if (similarDayData) {
           const simPoint = similarDayData.find((point: any) => point.HOURENDING === hour);
@@ -527,7 +527,7 @@ const LikedayAnalysis: React.FC<LikedayAnalysisProps> = () => {
       }
 
       // Add similar days data
-      results.similarityScores.slice(0, topN).forEach((score: any, index: any) => {
+      results.similarityScores.slice(0, topN).forEach((score: any, index: number) => {
         const similarDayData = results.chartData?.[variable]?.[score.day];
         if (similarDayData) {
           const simPoint = similarDayData.find((point: any) => point.HOURENDING === hour);
@@ -893,7 +893,7 @@ const LikedayAnalysis: React.FC<LikedayAnalysisProps> = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {results.similarityScores.map((score, index) => (
+                {results.similarityScores.map((score: any, index: number) => (
                   <tr key={score.day} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {score.rank}
@@ -1016,7 +1016,7 @@ const LikedayAnalysis: React.FC<LikedayAnalysisProps> = () => {
                     />
                     
                     {/* Similar days lines (blue gradient) */}
-                    {results.similarityScores.slice(0, topN).map((score: any, index: any) => (
+                    {results.similarityScores.slice(0, topN).map((score: any, index: number) => (
                       <Line
                         key={score.day}
                         type="monotone"
@@ -1111,29 +1111,19 @@ const LikedayAnalysis: React.FC<LikedayAnalysisProps> = () => {
                 return colors;
               };
 
-              const blueColors = generateBlueGradient(results.topN);
+              const blueColors = generateBlueGradient(topN);
               
-              // Add debug alert for RT Energy
-              if (secondaryVariable === 'RT Energy' && chartData.length > 0) {
-                const firstHour = chartData[0];
-                const availableKeys = Object.keys(firstHour);
-                console.log('🚨 RT Energy Debug - Available keys in first hour:', availableKeys);
-                console.log('🚨 RT Energy Debug - First hour data:', firstHour);
-                
-                // Check if reference data exists
-                const refKey = availableKeys.find(key => key.includes('reference'));
-                if (!refKey) {
-                  console.log('🚨 RT Energy Debug - NO REFERENCE KEY FOUND!');
-                  console.log('🚨 RT Energy Debug - Reference data structure:', results.chartData?.['RT Energy']?.[results.referenceDate]);
-                }
+              console.log('🔍 Secondary chart data:', chartData.length, 'points');
+              if (chartData.length > 0) {
+                console.log('🔍 First hour keys:', Object.keys(chartData[0]));
+                console.log('🔍 First hour data:', chartData[0]);
               }
-              
-              return null; // Debug function, no render
-            })()}
+
+              return (
             
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
-                data={processChartDataForVariable(secondaryVariable)}
+                data={chartData}
                 margin={{ top: 20, right: 30, left: 60, bottom: 80 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -1190,9 +1180,9 @@ const LikedayAnalysis: React.FC<LikedayAnalysisProps> = () => {
                     return colors;
                   };
 
-                  const blueColors = generateBlueGradient(results.topN);
+                  const blueColors = generateBlueGradient(topN);
                   
-                  return results.similarityScores.slice(0, topN).map((score: any, index: any) => (
+                  return results.similarityScores.slice(0, topN).map((score: any, index: number) => (
                     <Line
                       key={score.day}
                       type="monotone"
@@ -1206,6 +1196,8 @@ const LikedayAnalysis: React.FC<LikedayAnalysisProps> = () => {
                 })()}
               </LineChart>
             </ResponsiveContainer>
+              );
+            })()}
           </div>
         ) : (
           <div className="h-96 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-lg">
