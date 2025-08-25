@@ -155,24 +155,29 @@ export const POST: APIRoute = async ({ request }) => {
     // Step 6: Get top N similar days
     const topSimilarDays = rankedDays.slice(0, params.topN);
     
-    // Step 7: Fetch data for all variables for visualization
+    // Step 7: Fetch data for only the match variable (optimization)
     let allVariableData;
     if (params.referenceMode === 'forecast') {
-      // For forecast mode, we need to fetch both forecast and historical data
-      allVariableData = await fetchMixedVariableData(
+      // For forecast mode, fetch only match variable
+      allVariableData = await fetchSingleVariableData(
         username, 
         password, 
         params.scenarioId!,
         params.referenceDate, 
-        topSimilarDays.map(d => d.day)
+        topSimilarDays.map(d => d.day),
+        params.matchVariable,
+        'mixed'
       );
     } else {
-      // Historical mode: fetch all from YES Energy
-      allVariableData = await fetchAllVariableData(
+      // Historical mode: fetch only match variable from YES Energy
+      allVariableData = await fetchSingleVariableData(
         username, 
         password, 
+        null,
         params.referenceDate, 
-        topSimilarDays.map(d => d.day)
+        topSimilarDays.map(d => d.day),
+        params.matchVariable,
+        'historical'
       );
     }
 
@@ -452,6 +457,54 @@ function rankDays(scores: SimilarityScore[], euclideanWeight: number): Similarit
   });
   
   return scores;
+}
+
+async function fetchSingleVariableData(
+  username: string, 
+  password: string, 
+  scenarioId: number | null,
+  referenceDate: string, 
+  similarDays: string[],
+  matchVariable: string,
+  mode: 'historical' | 'mixed'
+): Promise<any> {
+  const results: any = {};
+  const variableData: any = {};
+  
+  if (mode === 'mixed' && scenarioId) {
+    // Forecast data for reference date
+    const forecastData = await fetchForecastData(scenarioId, referenceDate, matchVariable);
+    if (forecastData && forecastData.length > 0) {
+      variableData[referenceDate] = forecastData;
+    }
+    
+    // Historical data for similar days from YES Energy
+    const item = LIKEDAY_MAP[matchVariable];
+    for (const date of similarDays) {
+      const historicalData = await fetchYESEnergyData(username, password, date, date, item);
+      if (historicalData && historicalData.length > 0) {
+        variableData[date] = historicalData;
+      }
+      // Add small delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  } else {
+    // Historical mode: fetch only match variable from YES Energy
+    const allDates = [referenceDate, ...similarDays];
+    const item = LIKEDAY_MAP[matchVariable];
+    
+    for (const date of allDates) {
+      const data = await fetchYESEnergyData(username, password, date, date, item);
+      if (data && data.length > 0) {
+        variableData[date] = data;
+      }
+      // Add small delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  }
+  
+  results[matchVariable] = variableData;
+  return results;
 }
 
 async function fetchAllVariableData(
