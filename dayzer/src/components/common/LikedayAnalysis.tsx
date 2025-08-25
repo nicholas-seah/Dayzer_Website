@@ -74,6 +74,8 @@ const LikedayAnalysis: React.FC<LikedayAnalysisProps> = () => {
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [secondaryVariable, setSecondaryVariable] = useState<string>('');
+  const [secondaryData, setSecondaryData] = useState<any>(null);
+  const [secondaryLoading, setSecondaryLoading] = useState(false);
 
   // Available variables for match variable and secondary comparison
   const availableVariables = ['RT Load', 'RT Net Load', 'RT LMP', 'RT Energy', 'RT Congestion'];
@@ -272,6 +274,63 @@ const LikedayAnalysis: React.FC<LikedayAnalysisProps> = () => {
     }
   };
 
+  const handleSecondaryAnalysis = async () => {
+    if (!results || !secondaryVariable) return;
+    
+    setSecondaryLoading(true);
+    setError(null);
+    
+    try {
+      setProgress('Fetching secondary variable data...');
+      
+      const requestBody = {
+        referenceDate,
+        referenceMode,
+        matchVariable: secondaryVariable, // Use secondary variable as match variable
+        topSimilarDays: results.similarityScores.slice(0, topN).map((score: any) => score.day),
+        ...(referenceMode === 'forecast' && {
+          scenarioId: selectedScenario?.scenarioid,
+          scenarioName: selectedScenario?.scenarioname
+        })
+      };
+      
+      const response = await fetch('/api/likeday-secondary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        let errorMessage = `Secondary analysis failed with status ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (jsonError) {
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        throw new Error('Invalid response format from server');
+      }
+      
+      setSecondaryData(data);
+      setProgress('');
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Secondary analysis failed');
+      setProgress('');
+    } finally {
+      setSecondaryLoading(false);
+    }
+  };
+
   const handleDebug = async () => {
     setLoading(true);
     setError(null);
@@ -335,6 +394,87 @@ const LikedayAnalysis: React.FC<LikedayAnalysisProps> = () => {
     } else {
       return 'Value';
     }
+  };
+
+  const processChartDataForSecondaryVariable = (variable: string, data: any) => {
+    if (!data || !data.chartData) return [];
+
+    const referenceData = data.chartData?.[variable]?.[referenceDate];
+    if (!referenceData) return [];
+
+    const chartData = [];
+
+    // Process data for hours 1-24
+    for (let hour = 1; hour <= 24; hour++) {
+      const hourData: any = { hour };
+
+      // Add reference data
+      const refPoint = referenceData.find((point: any) => point.HOURENDING === hour);
+      if (refPoint) {
+        const variableKey = Object.keys(refPoint).find(key => {
+          const keyUpper = key.toUpperCase();
+          const varUpper = variable.toUpperCase();
+          
+          // Same robust matching logic as main function
+          if (varUpper.includes('RT LOAD') && !varUpper.includes('NET')) {
+            return keyUpper.includes('RTLOAD') && !keyUpper.includes('NET');
+          } else if (varUpper.includes('RT NET LOAD')) {
+            return keyUpper.includes('RTLOAD_NET') || keyUpper.includes('NET_OF_RENEWABLES');
+          } else if (varUpper.includes('RT LMP')) {
+            return keyUpper.includes('RTLMP');
+          } else if (varUpper.includes('RT ENERGY')) {
+            return keyUpper.includes('RTENERGY');
+          } else if (varUpper.includes('RT CONGESTION')) {
+            return keyUpper.includes('RTCONG');
+          }
+          
+          return keyUpper.includes(varUpper.replace(/\s+/g, '')) || 
+                 keyUpper.includes(varUpper.replace(/\s+/g, '_'));
+        });
+        
+        if (variableKey) {
+          hourData[`reference_${variable.replace(/\s+/g, '_')}`] = refPoint[variableKey];
+        }
+      }
+
+      // Add similar days data
+      results.similarityScores.slice(0, topN).forEach((score: any, index: any) => {
+        const similarDayData = data.chartData?.[variable]?.[score.day];
+        if (similarDayData) {
+          const simPoint = similarDayData.find((point: any) => point.HOURENDING === hour);
+          if (simPoint) {
+            const variableKey = Object.keys(simPoint).find(key => {
+              const keyUpper = key.toUpperCase();
+              const varUpper = variable.toUpperCase();
+              
+              // Same robust matching logic
+              if (varUpper.includes('RT LOAD') && !varUpper.includes('NET')) {
+                return keyUpper.includes('RTLOAD') && !keyUpper.includes('NET');
+              } else if (varUpper.includes('RT NET LOAD')) {
+                return keyUpper.includes('RTLOAD_NET') || keyUpper.includes('NET_OF_RENEWABLES');
+              } else if (varUpper.includes('RT LMP')) {
+                return keyUpper.includes('RTLMP');
+              } else if (varUpper.includes('RT ENERGY')) {
+                return keyUpper.includes('RTENERGY');
+              } else if (varUpper.includes('RT CONGESTION')) {
+                return keyUpper.includes('RTCONG');
+              }
+              
+              return keyUpper.includes(varUpper.replace(/\s+/g, '')) || 
+                     keyUpper.includes(varUpper.replace(/\s+/g, '_'));
+            });
+            
+            if (variableKey) {
+              hourData[`${score.day}_${variable.replace(/\s+/g, '_')}`] = simPoint[variableKey];
+            }
+          }
+        }
+      });
+
+      chartData.push(hourData);
+    }
+
+    return chartData;
   };
 
   const processChartDataForVariable = (variable: string) => {
@@ -912,34 +1052,47 @@ const LikedayAnalysis: React.FC<LikedayAnalysisProps> = () => {
           <h3 className="text-lg font-semibold text-gray-800">
             Secondary Variable Comparison
           </h3>
-          <div className="w-48">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Compare Variable
-            </label>
-            <select
-              value={secondaryVariable}
-              onChange={(e) => setSecondaryVariable(e.target.value)}
-              disabled={!results}
-              className={`w-full p-2 border border-gray-300 rounded-md text-sm ${
-                !results ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'
-              }`}
+          <div className="flex items-end gap-3">
+            <div className="w-48">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Compare Variable
+              </label>
+              <select
+                value={secondaryVariable}
+                onChange={(e) => {
+                  setSecondaryVariable(e.target.value);
+                  setSecondaryData(null); // Clear previous secondary data
+                }}
+                disabled={!results}
+                className={`w-full p-2 border border-gray-300 rounded-md text-sm ${
+                  !results ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'
+                }`}
+              >
+                <option value="">Select variable...</option>
+                {availableVariables
+                  .filter(variable => variable !== matchVariable)
+                  .map(variable => (
+                    <option key={variable} value={variable}>
+                      {variable}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <button
+              onClick={handleSecondaryAnalysis}
+              disabled={!results || !secondaryVariable || secondaryLoading}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium text-sm"
             >
-              <option value="">Select variable...</option>
-              {availableVariables
-                .filter(variable => variable !== matchVariable)
-                .map(variable => (
-                  <option key={variable} value={variable}>
-                    {variable}
-                  </option>
-                ))}
-            </select>
+              {secondaryLoading ? 'Loading...' : 'Compare'}
+            </button>
           </div>
         </div>
 
-        {results && secondaryVariable ? (
+        {results && secondaryVariable && secondaryData ? (
           <div className="h-96">
             {(() => {
-              const chartData = processChartDataForVariable(secondaryVariable);
+              // Use secondary data instead of results data
+              const chartData = processChartDataForSecondaryVariable(secondaryVariable, secondaryData);
               
               // Generate blue color gradient (same as main chart)
               const generateBlueGradient = (count: number) => {
@@ -1063,8 +1216,10 @@ const LikedayAnalysis: React.FC<LikedayAnalysisProps> = () => {
               <p className="text-lg font-medium mb-2">Secondary Variable Comparison</p>
               <p className="text-sm">
                 {!results 
-                  ? "Run analysis and select a variable to compare"
-                  : "Select a variable from the dropdown above"
+                  ? "Run analysis first, then select a variable and click Compare"
+                  : !secondaryVariable
+                  ? "Select a variable from the dropdown and click Compare"
+                  : "Click the Compare button to load this variable's data"
                 }
               </p>
             </div>
