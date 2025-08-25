@@ -631,21 +631,13 @@ const LikedayAnalysis: React.FC<LikedayAnalysisProps> = () => {
         </div>
 
         {/* Run Analysis Button */}
-        <div className="mt-6 flex gap-4">
+        <div className="mt-6">
           <button
             onClick={handleAnalysis}
             disabled={loading || (referenceMode === 'forecast' && !selectedScenario)}
             className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
           >
             {loading ? 'Analyzing...' : 'Run Likeday Analysis'}
-          </button>
-          
-          <button
-            onClick={handleDebug}
-            disabled={loading}
-            className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
-          >
-            {loading ? 'Debugging...' : 'Debug Data'}
           </button>
         </div>
 
